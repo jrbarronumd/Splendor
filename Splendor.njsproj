@@ -1,0 +1,189 @@
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">14.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <Name>Splendor</Name>
+    <RootNamespace>Splendor</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>d6c3768b-2668-4999-b704-1aa19ccfcb02</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>server.js</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <ProjectTypeGuids>{3AF33F2E-1136-4D97-BBB7-1795711AC8B8};{349c5851-65df-11da-9384-00065b846f21};{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}</ProjectTypeGuids>
+    <NodejsPort>1337</NodejsPort>
+    <StartWebBrowser>true</StartWebBrowser>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Public\Images\Cards\Splendor Blue - 000.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 001.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 002.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 003.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 004.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 005.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 006.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 007.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 008.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 009.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 010.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 011.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 012.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 013.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 014.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 015.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 016.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 017.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 018.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 019.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Blue - 020.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 000.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 001.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 002.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 003.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 004.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 005.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 006.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 007.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 008.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 009.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 010.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 011.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 012.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 013.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 014.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 015.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 016.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 017.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 018.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 019.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 020.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 021.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 022.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 023.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 024.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 025.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 026.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 027.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 028.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 029.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 030.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 031.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 032.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 033.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 034.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 035.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 036.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 037.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 038.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 039.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Green - 040.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 000.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 001.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 002.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 003.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 004.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 005.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 006.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 007.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 008.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 009.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 010.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 011.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 012.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 013.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 014.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 015.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 016.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 017.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 018.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 019.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 020.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 021.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 022.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 023.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 024.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 025.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 026.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 027.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 028.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 029.jpg" />
+    <Content Include="Public\Images\Cards\Splendor Yellow - 030.jpg" />
+    <Content Include="Public\Images\Gems\Splendor Gems - 001.jpg" />
+    <Content Include="Public\Images\Gems\Splendor Gems - 002.jpg" />
+    <Content Include="Public\Images\Gems\Splendor Gems - 003.jpg" />
+    <Content Include="Public\Images\Gems\Splendor Gems - 004.jpg" />
+    <Content Include="Public\Images\Gems\Splendor Gems - 005.jpg" />
+    <Content Include="Public\Images\Gems\Splendor Gems - 006.jpg" />
+    <Content Include="Public\Images\Nobles\Splendor Nobles - 000.jpg" />
+    <Content Include="Public\Images\Nobles\Splendor Nobles - 001.jpg" />
+    <Content Include="Public\Images\Nobles\Splendor Nobles - 002.jpg" />
+    <Content Include="Public\Images\Nobles\Splendor Nobles - 003.jpg" />
+    <Content Include="Public\Images\Nobles\Splendor Nobles - 004.jpg" />
+    <Content Include="Public\Images\Nobles\Splendor Nobles - 005.jpg" />
+    <Content Include="Public\Images\Nobles\Splendor Nobles - 006.jpg" />
+    <Content Include="Public\Images\Nobles\Splendor Nobles - 007.jpg" />
+    <Content Include="Public\Images\Nobles\Splendor Nobles - 008.jpg" />
+    <Content Include="server.js" />
+    <Content Include="package.json" />
+    <Content Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Public\" />
+    <Folder Include="Public\Images\" />
+    <Folder Include="Public\Images\Cards\" />
+    <Folder Include="Public\Images\Gems\" />
+    <Folder Include="Public\Images\Nobles\" />
+  </ItemGroup>
+  <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>False</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>0</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>http://localhost:48022/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>True</UseCustomServer>
+          <CustomServerUrl>http://localhost:1337</CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}" User="">
+        <WebProjectProperties>
+          <StartPageUrl>
+          </StartPageUrl>
+          <StartAction>CurrentPage</StartAction>
+          <AspNetDebugging>True</AspNetDebugging>
+          <SilverlightDebugging>False</SilverlightDebugging>
+          <NativeDebugging>False</NativeDebugging>
+          <SQLDebugging>False</SQLDebugging>
+          <ExternalProgram>
+          </ExternalProgram>
+          <StartExternalURL>
+          </StartExternalURL>
+          <StartCmdLineArguments>
+          </StartCmdLineArguments>
+          <StartWorkingDirectory>
+          </StartWorkingDirectory>
+          <EnableENC>False</EnableENC>
+          <AlwaysStartWebServerOnDebug>False</AlwaysStartWebServerOnDebug>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>
