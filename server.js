@@ -8,7 +8,7 @@ const server = http.createServer(app)
 const io = socketio(server)
 
 // Set static folder
-app.use(express.static(path.join(__dirname, "public")))
+app.use(express.static(path.join(__dirname, "public-files")))
 
 // Start server
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`))
