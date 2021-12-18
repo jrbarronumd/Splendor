@@ -28,6 +28,13 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="Public\app.js">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="Public\gamePlay.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="Public\Images\Banner.jpg" />
     <Content Include="Public\Images\Cards\Splendor Blue - 000.jpg" />
     <Content Include="Public\Images\Cards\Splendor Blue - 001.jpg" />
     <Content Include="Public\Images\Cards\Splendor Blue - 002.jpg" />
@@ -127,6 +134,7 @@
     <Content Include="Public\Images\Gems\Splendor Gems - 004.jpg" />
     <Content Include="Public\Images\Gems\Splendor Gems - 005.jpg" />
     <Content Include="Public\Images\Gems\Splendor Gems - 006.jpg" />
+    <Content Include="Public\Images\Gems\Thumbs.db" />
     <Content Include="Public\Images\Nobles\Splendor Nobles - 000.jpg" />
     <Content Include="Public\Images\Nobles\Splendor Nobles - 001.jpg" />
     <Content Include="Public\Images\Nobles\Splendor Nobles - 002.jpg" />
@@ -136,6 +144,13 @@
     <Content Include="Public\Images\Nobles\Splendor Nobles - 006.jpg" />
     <Content Include="Public\Images\Nobles\Splendor Nobles - 007.jpg" />
     <Content Include="Public\Images\Nobles\Splendor Nobles - 008.jpg" />
+    <Content Include="Public\Images\Splash-img.jpg" />
+    <Content Include="Public\index.html">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="Public\Style.css">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="server.js" />
     <Content Include="package.json" />
     <Content Include="README.md" />

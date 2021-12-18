@@ -1,8 +1,14 @@
-'use strict';
-var http = require('http');
-var port = process.env.PORT || 1337;
+const express = require('express')
+const path = require('path')
+const http = require('http')
+const PORT = process.env.PORT || 8585
+const socketio = require('socket.io')
+const app = express()
+const server = http.createServer(app)
+const io = socketio(server)
 
-http.createServer(function (req, res) {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Hello World\n');
-}).listen(port);
+// Set static folder
+app.use(express.static(path.join(__dirname, "public")))
+
+// Start server
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`))

@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "description": "Splendor",
   "main": "server.js",
+  "scripts": {
+    "start": "node server",
+    "dev": "nodemon server"
+  },
   "author": {
     "name": ""
   },
