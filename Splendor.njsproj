@@ -28,6 +28,9 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="public-files\newGame.html">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="public-files\app.js" />
     <Content Include="public-files\gamePlay.html" />
     <Content Include="public-files\images\banner.jpg" />
