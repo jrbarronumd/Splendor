@@ -3,12 +3,32 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
-    <title>Create New Game</title>
+    <title>Splendor | Create Game</title>
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header> 
+    <header>
+        <a href="index.html">
+           <img src="images/banner.jpg" class="splash-splendor-image" />
+        </a>
         <h1>Create New Game</h1>
         <hr>
     </header>
+    <div>
+        <span>No. of players:</span>
+        <input type="number" />
+    </div>
+    <br />
+    <div>
+        <span>Name of game:</span>
+        <span><input type="text" /></span>
+        <span class="tinyText">(leave blank for random generated id)</span>
+    </div>
+    <br />
+    <div>
+        <button type="button">Saved Games</button>
+        <button type="button">Start Game</button>
+    </div>
 </body>
 </html>
