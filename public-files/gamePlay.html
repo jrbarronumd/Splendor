@@ -1,29 +1,176 @@
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <meta charset="utf-8" />
-    <title>Splendor | Game Play</title>
-    <link rel="stylesheet" href="style.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat&display=swap" rel="stylesheet">
-</head>
-<body>
-    <header>
-        <a href="index.html">Home</a>
-    </header>
-    <div class="noblesRow">
-        <span class="noblesTile n2"><img src="images\nobles\nobles-01.jpg"</span>
-        <span class="noblesTile n2"><img src="images\nobles\nobles-02.jpg"</span>
-        <span class="noblesTile n2"><img src="images\nobles\nobles-03.jpg"</span>
-        <span class="noblesTile n3"><img src="images\nobles\nobles-04.jpg"</span>
-        <span class="noblesTile n4"><img src="images\nobles\nobles-03.jpg"</span>
-    </div>
-    <div class="greenRow">
-        <span class="greenCard card deck"><img src="images\cards\green-00.jpg"</span>
-        <span class="greenCard card inPlay"><img src="images\cards\green-01.jpg"</span>
-        <span class="greenCard card inPlay"><img src="images\cards\green-02.jpg"</span>
-        <span class="greenCard card inPlay"><img src="images\cards\green-03.jpg"</span>
-        <span class="greenCard card inPlay"><img src="images\cards\green-04.jpg"</span>
-    </div>
-</body>
+    <head>
+        <meta charset="utf-8" />
+        <title>Splendor | Game Play</title>
+        <link rel="stylesheet" href="style.css" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat&display=swap"
+            rel="stylesheet" />
+    </head>
+    <body>
+        <div class="game-table">
+            <div class="game-board">
+                <div class="game-board-rows">
+                    <div class="game-board-item nobles-row">
+                        <img src="images\nobles\nobles-00.jpg" />
+                        <img src="images\nobles\nobles-00.jpg" />
+                        <img src="images\nobles\nobles-00.jpg" />
+                        <img src="images\nobles\nobles-00.jpg" />
+                    </div>
+                    <div class="game-board-item card-row">
+                        <img src="images\cards\blue-00.jpg" />
+                        <img src="images\cards\blue-00.jpg" />
+                        <img src="images\cards\blue-00.jpg" />
+                        <img src="images\cards\blue-00.jpg" />
+                        <img src="images\cards\blue-00.jpg" />
+                    </div>
+                    <div class="game-board-item card-row">
+                        <img src="images\cards\yellow-00.jpg" />
+                        <img src="images\cards\yellow-00.jpg" />
+                        <img src="images\cards\yellow-00.jpg" />
+                        <img src="images\cards\yellow-00.jpg" />
+                        <img src="images\cards\yellow-00.jpg" />
+                    </div>
+                    <div class="game-board-item card-row">
+                        <img src="images\cards\green-00.jpg" />
+                        <img src="images\cards\green-00.jpg" />
+                        <img src="images\cards\green-00.jpg" />
+                        <img src="images\cards\green-00.jpg" />
+                        <img src="images\cards\green-00.jpg" />
+                    </div>
+                </div>
+                <div class="gem-column">
+                    <div class="gem-row">
+                        <img src="images/gems/goldGem.jpg" />
+                        <span class="gem-label game-board-label">5</span>
+                    </div>
+                    <div class="gem-row">
+                        <img src="images/gems/whiteGem.jpg" />
+                        <span class="gem-label game-board-label">5</span>
+                    </div>
+                    <div class="gem-row">
+                        <img src="images/gems/blueGem.jpg" />
+                        <span class="gem-label game-board-label">5</span>
+                    </div>
+                    <div class="gem-row">
+                        <img src="images/gems/greenGem.jpg" />
+                        <span class="gem-label game-board-label">5</span>
+                    </div>
+                    <div class="gem-row">
+                        <img src="images/gems/redGem.jpg" />
+                        <span class="gem-label game-board-label">5</span>
+                    </div>
+                    <div class="gem-row">
+                        <img src="images/gems/blackGem.jpg" />
+                        <span class="gem-label game-board-label">5</span>
+                    </div>
+                </div>
+            </div>
+            <div class="players">
+                <div class="player-container player-1">
+                    <div class="player-label">Player 1</div>
+                    <div class="player-gem-row player-1-content">
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/whiteGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/blueGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/greenGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/redGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/blackGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="player-container player-2">
+                    <div class="player-label">Player 2</div>
+                    <div class="player-gem-row player-2-content">
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/whiteGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/blueGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/greenGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/redGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/blackGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="player-container player-3">
+                    <div class="player-label">Player 3</div>
+                    <div class="player-gem-row player-3-content">
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/whiteGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/blueGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/greenGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/redGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/blackGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="player-container player-4">
+                    <div class="player-label">Player 4</div>
+                    <div class="player-gem-row player-4-content">
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/whiteGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/blueGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/greenGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/redGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                        <div class="gem-row player-gems">
+                            <img src="images/gems/blackGem.jpg" />
+                            <span class="player-gem-label">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </body>
 </html>

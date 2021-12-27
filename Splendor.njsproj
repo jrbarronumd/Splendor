@@ -139,7 +139,7 @@
     <Content Include="public-files\newGame.html">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="public-files\app.js" />
+    <Content Include="public-files\newGame.js" />
     <Content Include="public-files\gamePlay.html" />
     <Content Include="public-files\images\banner.jpg" />
     <Content Include="public-files\images\splash-img.jpg" />
@@ -155,9 +155,6 @@
     <Folder Include="public-files\images\cards\" />
     <Folder Include="public-files\images\gems\" />
     <Folder Include="public-files\images\nobles\" />
-    <Folder Include="public\" />
-    <Folder Include="public\images\" />
-    <Folder Include="public\images\cards\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>
