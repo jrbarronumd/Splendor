@@ -97,6 +97,7 @@ h1 {
 .player-name {
     padding: 20px;
     margin: 10px 0px 10px 15px;
+    border-radius: 5px;
 }
 
 .player-1 {
@@ -174,7 +175,7 @@ h1 {
 }
 
 .nobles-row img {
-    max-width: 23%;
+    max-width: 18%;
     max-height: 16vh;
 }
 

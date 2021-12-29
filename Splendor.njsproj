@@ -28,6 +28,15 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="public-files\decks\blueDeck.js">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="public-files\gamePlay.js">
+      <SubType>Code</SubType>
+    </Content>
+    <Content Include="public-files\decks\greenDeck.js">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="public-files\images\cards\blue-00.jpg" />
     <Content Include="public-files\images\cards\blue-01.jpg" />
     <Content Include="public-files\images\cards\blue-02.jpg" />
@@ -144,7 +153,13 @@
     <Content Include="public-files\images\banner.jpg" />
     <Content Include="public-files\images\splash-img.jpg" />
     <Content Include="public-files\index.html" />
+    <Content Include="public-files\decks\noblesDeck.js">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="public-files\style.css" />
+    <Content Include="public-files\decks\yellowDeck.js">
+      <SubType>Code</SubType>
+    </Content>
     <Content Include="server.js" />
     <Content Include="package.json" />
     <Content Include="README.md" />
@@ -155,6 +170,7 @@
     <Folder Include="public-files\images\cards\" />
     <Folder Include="public-files\images\gems\" />
     <Folder Include="public-files\images\nobles\" />
+    <Folder Include="public-files\decks\" />
   </ItemGroup>
   <Import Project="$(VSToolsPath)\Node.js Tools\Microsoft.NodejsToolsV2.targets" />
   <ProjectExtensions>
