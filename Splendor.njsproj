@@ -28,6 +28,7 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="libman.json" />
     <Content Include="public-files\decks\blueDeck.js">
       <SubType>Code</SubType>
     </Content>
@@ -156,7 +157,7 @@
     <Content Include="public-files\decks\noblesDeck.js">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="public-files\style.css" />
+    <Content Include="public-files\styles.css" />
     <Content Include="public-files\decks\yellowDeck.js">
       <SubType>Code</SubType>
     </Content>
