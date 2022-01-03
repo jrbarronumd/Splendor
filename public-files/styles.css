@@ -2,8 +2,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Merienda&display=swap');
 
 html {
-    background-color: rgba(100, 73, 57, 0.329);
-    color: rgb(50,50,50);
+    background-color: hsl(0, 0%, 25%);
+    color: hsl(0, 0%, 85%);
 }
 
 html, body {
@@ -34,16 +34,16 @@ h1 {
 .nav a {
     font-size: 2em;
     text-decoration: none;
-    color: black;
-    background-color: darkseagreen;
+    color: hsl(0, 0%, 0%);
+    background-color: hsl(120, 25%, 65%);
     margin: 1em;
     padding: .5em;
     border-radius: 10px;
 }
 
 .nav a:hover {
-    color: blue;
-    background-color: rgb(233, 221, 152);
+    color: hsl(240, 100%, 50%);
+    background-color: hsl(51, 65%, 75%);
 }
 
 .user-entry {
@@ -69,15 +69,15 @@ h1 {
 }
 
 .user-entry input[type="radio"]:checked + label {
-    background-color: #c7c7c7;
-    color: black;
+    background-color: hsl(0, 0%, 78%);
+    color: hsl(0, 0%, 0%);
 }
 
 .user-entry label {
     display: flex;
     justify-content: center;
-    color: #ccc;
-    background-color: #303030;
+    color: hsl(0, 0%, 80%);
+    background-color: rgb(48, 48, 48);
     font-size: 1.25em;
     padding: .5em 1em;
     margin: .5em;
@@ -85,9 +85,9 @@ h1 {
 }
 
 .user-entry label:hover {
-    background-color: darkgrey;
+    background-color: hsl(0, 0%, 66%);
     cursor: pointer;
-    color: black;
+    color: hsl(0, 0%, 0%);
 }
 
 .new-game-label {
@@ -101,19 +101,19 @@ h1 {
 }
 
 .player-1 {
-    background-color: rgba(139,0,0,.7);
+    background-color: hsla(0, 100%, 27%, 0.7);
 }
 
 .player-2 {
-    background-color: rgba(0,100,0,.7);
+    background-color: hsla(120, 100%, 20%, 0.7);
 }
 
 .player-3 {
-    background-color: rgba(0,0,139,.7);
+    background-color: hsla(240, 100%, 27%, 0.7);
 }
 
 .player-4 {
-    background-color: rgba(184,134,11,.7);
+    background-color: hsla(43, 89%, 38%, 0.7);
 }
 
 /*
@@ -138,7 +138,7 @@ h1 {
     align-content: space-between;
     padding: 2vh;
     margin: 1vh;
-    border: solid rgba(0,0,0,.4);
+    border: solid hsla(0, 0%, 0%, 0.4);
     border-radius: 5vh;
 }
 
@@ -151,7 +151,12 @@ h1 {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    margin: .6vh auto;
+    margin: 1vh auto;
+}
+
+.game-board-item img {
+    border:solid 1px hsl(0, 0%, 85%);
+    border-radius: 4px;
 }
 
 .gem-column {
