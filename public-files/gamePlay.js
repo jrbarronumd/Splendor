@@ -17,9 +17,11 @@ for (var i = 0; i < 6; i++) {
 const noblesDeck = new NoblesDeck();
 const blueDeck = new CardsDeck();
 const yellowDeck = new CardsDeck();
+const greenDeck = new CardsDeck();
 
 blueDeck.blueDeck();
 yellowDeck.yellowDeck();
+greenDeck.greenDeck();
 
 // place proper number of nobles and adjust size
 //TODO: adjust nobles-row img{} CSS to change max-width
@@ -35,13 +37,19 @@ function dealCards() {
       noblesContainer.innerHTML += newDivContents;
    }
    blueDeck.shuffle();
+   yellowDeck.shuffle();
+   greenDeck.shuffle();
    console.log(blueDeck.cards);
+   console.log(yellowDeck.cards);
+   console.log(greenDeck.cards);
 
    for (let i = 0; i < 4; i++) {
-      //const dealBlueCard = blueDeck.deal();
+      const dealBlueCard = blueDeck.deal();
+      const dealYellowCard = yellowDeck.deal();
+      const dealGreenCard = greenDeck.deal();
       document.getElementById(`board-blue-${i + 1}`).src = `images\\cards\\blue-${dealBlueCard.cardId}.jpg`;
-      document.getElementById(`board-green-${i + 1}`).src = `images\\cards\\green-0${i + 1}.jpg`;
-      document.getElementById(`board-yellow-${i + 1}`).src = `images\\cards\\yellow-0${i + 1}.jpg`;
+      document.getElementById(`board-yellow-${i + 1}`).src = `images\\cards\\yellow-${dealYellowCard.cardId}.jpg`;
+      document.getElementById(`board-green-${i + 1}`).src = `images\\cards\\green-${dealGreenCard.cardId}.jpg`;
    }
 }
 
