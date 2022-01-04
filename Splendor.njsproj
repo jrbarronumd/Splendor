@@ -29,13 +29,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="libman.json" />
-    <Content Include="public-files\decks\blueDeck.js">
+    <Content Include="public-files\decks\cardDeck.js">
       <SubType>Code</SubType>
     </Content>
     <Content Include="public-files\gamePlay.js">
-      <SubType>Code</SubType>
-    </Content>
-    <Content Include="public-files\decks\greenDeck.js">
       <SubType>Code</SubType>
     </Content>
     <Content Include="public-files\images\cards\blue-00.jpg" />
@@ -158,9 +155,6 @@
       <SubType>Code</SubType>
     </Content>
     <Content Include="public-files\styles.css" />
-    <Content Include="public-files\decks\yellowDeck.js">
-      <SubType>Code</SubType>
-    </Content>
     <Content Include="server.js" />
     <Content Include="package.json" />
     <Content Include="README.md" />
