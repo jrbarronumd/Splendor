@@ -28,7 +28,6 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="libman.json" />
     <Content Include="public-files\decks\cardDeck.js">
       <SubType>Code</SubType>
     </Content>
