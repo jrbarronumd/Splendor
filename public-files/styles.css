@@ -1,119 +1,117 @@
-
-@import url('https://fonts.googleapis.com/css2?family=Merienda&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Merienda&display=swap");
 
 html {
-    background-color: hsl(0, 0%, 25%);
-    color: hsl(0, 0%, 85%);
+  background-color: hsl(0, 0%, 25%);
+  color: hsl(0, 0%, 85%);
 }
 
-html, body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Merienda', cursive;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Merienda", cursive;
 }
 
 h1 {
-    text-align: center;
+  text-align: center;
 }
 
 .header {
-    height: 25vw;
-    min-height: 50px;
-    max-height: 250px;
-    background-image: url("images/banner.jpg");
-    background-size: contain;
-    background-position: center bottom;
-    background-repeat: no-repeat;
+  height: 25vw;
+  min-height: 50px;
+  max-height: 250px;
+  background-image: url("images/banner.jpg");
+  background-size: contain;
+  background-position: center bottom;
+  background-repeat: no-repeat;
 }
 
 .nav {
-    margin: 3em;
-    text-align: center;
+  margin: 3em;
+  text-align: center;
 }
 
 .nav a {
-    font-size: 2em;
-    text-decoration: none;
-    color: hsl(0, 0%, 0%);
-    background-color: hsl(120, 25%, 65%);
-    margin: 1em;
-    padding: .5em;
-    border-radius: 10px;
+  font-size: 2em;
+  text-decoration: none;
+  color: hsl(0, 0%, 0%);
+  background-color: hsl(120, 25%, 65%);
+  margin: 1em;
+  padding: 0.5em;
+  border-radius: 10px;
 }
 
 .nav a:hover {
-    color: hsl(240, 100%, 50%);
-    background-color: hsl(51, 65%, 75%);
+  color: hsl(240, 100%, 50%);
+  background-color: hsl(51, 65%, 75%);
 }
 
 .user-entry {
-    display: flex;
-    margin-top: 30px;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
+  display: flex;
+  margin-top: 30px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .user-entry input {
-    height: 2em;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
-    padding: .25em .5em;
+  height: 2em;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  padding: 0.25em 0.5em;
 }
 
 .user-entry input[type="radio"] {
-    width: 0;
-    position: fixed;
-    opacity: 0;
+  position: fixed;
+  opacity: 0;
 }
 
 .user-entry input[type="radio"]:checked + label {
-    background-color: hsl(0, 0%, 78%);
-    color: hsl(0, 0%, 0%);
+  background-color: hsl(0, 0%, 78%);
+  color: hsl(0, 0%, 0%);
 }
 
 .user-entry label {
-    display: flex;
-    justify-content: center;
-    color: hsl(0, 0%, 80%);
-    background-color: rgb(48, 48, 48);
-    font-size: 1.25em;
-    padding: .5em 1em;
-    margin: .5em;
-    border-radius: 5px;
+  display: flex;
+  justify-content: center;
+  background-color: rgb(48, 48, 48);
+  font-size: 1.25em;
+  padding: 0.5em 1em;
+  margin: 0.5em;
+  border-radius: 5px;
 }
 
 .user-entry label:hover {
-    background-color: hsl(0, 0%, 66%);
-    cursor: pointer;
-    color: hsl(0, 0%, 0%);
+  background-color: hsl(0, 0%, 66%);
+  cursor: pointer;
+  color: hsl(0, 0%, 0%);
 }
 
 .new-game-label {
-    margin: 0 1em;
+  margin: 0 1em;
 }
 
 .player-name {
-    padding: 20px;
-    margin: 10px 0px 10px 15px;
-    border-radius: 5px;
+  padding: 20px;
+  margin: 10px 0px 10px 15px;
+  border-radius: 5px;
 }
 
 .player-1 {
-    background-color: hsla(0, 100%, 27%, 0.7);
+  background-color: hsla(0, 100%, 27%, 0.7);
 }
 
 .player-2 {
-    background-color: hsla(120, 100%, 20%, 0.7);
+  background-color: hsla(120, 100%, 20%, 0.7);
 }
 
 .player-3 {
-    background-color: hsla(240, 100%, 27%, 0.7);
+  background-color: hsla(240, 100%, 27%, 0.7);
 }
 
 .player-4 {
-    background-color: hsla(43, 89%, 38%, 0.7);
+  background-color: hsla(43, 89%, 38%, 0.7);
 }
 
 /*
@@ -121,113 +119,137 @@ h1 {
     Height w/o gems: 2532 total - 17.89% noble, 27.37% each card
     Height w/ gems:  2871 total - 15.78% noble, 24.14% each card, 11.81% gem
     Width w/ gems: 2829 total - 17.6% each card, 11.98% gems
+    TODO: use javascript to size the board/table in some way, then maybe % to fill height AND width?
 */
 .game-table {
-    display: flex;
-    flex-wrap: wrap;
-    max-width: 99vw;
-    max-height: 99vh;
-    justify-content: space-around;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
 }
 
 .game-board {
-    display: flex;
-    max-width: 55vw;
-    max-height: 99vh;
-    justify-content: space-between;
-    align-content: space-between;
-    padding: 2vh;
-    margin: 1vh;
-    border: solid hsla(0, 0%, 0%, 0.4);
-    border-radius: 5vh;
+  display: flex;
+  max-width: 57vw;
+  padding: 2vh;
+  margin: 1vh;
+  border: solid hsla(0, 0%, 0%, 0.4);
+  border-radius: 5vh;
 }
 
 .game-board-rows {
-    flex-direction: column;
-    max-width: 83%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  max-width: 83%;
 }
 
 .game-board-item {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    margin: 1vh auto;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 0.5vh auto;
 }
 
 .game-board-item img {
-    border:solid 1px hsl(0, 0%, 85%);
-    border-radius: 4px;
+  border: solid 1px hsl(0, 0%, 85%);
+  border-radius: 4px;
 }
-
-.gem-column {
-    flex-direction: column;
-    width: 20%;
-}
-
-.gem-row {
-    display: flex;
-    align-items: center;
-    margin: .4vh;
-}
-
-.game-board-label {
-    margin-left: .5vw;
-}
-
-.gem-label {
-    font-size: 2vw;
-    font-weight: bold;
-}
-
 .nobles-row img {
-    max-width: 18%;
-    max-height: 16vh;
+  max-width: 18%;
+  max-height: 16vh;
+}
+
+.card-deck-container {
+  max-width: 17.6%;
+  position: relative;
 }
 
 .card-row img {
-    max-width: 17.6%;
-    max-height: 23vh;
+  max-width: 17.6%;
+  max-height: 23vh;
+}
+
+.card-deck-container img {
+  max-width: 100%;
+  max-height: 23vh;
+}
+
+.deck-count {
+  position: absolute;
+  font-size: 4vh;
+  top: 3%;
+  left: 50%;
+  transform: translate(-50%, 0%);
+  text-shadow: 2px 0 0 hsl(0, 0%, 20%), 0 2px 0 hsl(0, 0%, 20%), -2px 0 0 hsl(0, 0%, 20%), 0 -2px 0 hsl(0, 0%, 20%);
+}
+
+.gem-column {
+  display: flex;
+  flex-direction: column;
+  width: 20%;
+  justify-content: space-between;
+}
+
+.gem-row {
+  display: flex;
+  align-items: center;
+  margin: 0.4vh;
+}
+
+.game-board-label {
+  margin-left: 0.5vw;
+}
+
+.gem-label {
+  font-size: 2vw;
+  font-weight: bold;
 }
 
 .gem-row img {
-    max-height: 12vh;
-    max-width: 80%;
-    border-radius: 6vh;
+  max-height: 12vh;
+  max-width: 80%;
+  border-radius: 6vh;
 }
 
 .players {
-    flex-direction: column;
-    justify-content: center;
-    max-width: 47vw;
-    max-height: 99vh;
-    margin: 1vh;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 47vw;
+  max-height: 99vh;
+  margin: 1vh;
 }
 
 .player-container {
-    margin: 2em;
-    padding: 1vh;
-    border-radius: 2vh;
-    height: 17vh;
+  margin: 2em;
+  padding: 1vh;
+  border-radius: 2vh;
+  height: 17vh;
 }
 
-.player-label, .player-gem-label {
-    width: 100%;
-    text-align: center;
-    font-size: 3vmin;
+.player-label {
+  width: 100%;
+  text-align: center;
+  font-size: 3vmin;
+}
+
+.player-gem-counts {
+  width: 100%;
+  text-align: center;
+  font-size: 2vmin;
 }
 
 .player-gem-row {
-    display: flex;
-    justify-content: space-around;
-    height: 13vh;
+  display: flex;
+  justify-content: space-around;
+  height: 13vh;
 }
 
 .player-gems {
-    flex-direction: column;
-    max-width: 18%;
+  flex-direction: column;
+  max-width: 18%;
 }
 
 .player-gems img {
-    max-width: 100%;
-    height: 8.2vh;
+  max-width: 100%;
+  height: 8.2vh;
 }
