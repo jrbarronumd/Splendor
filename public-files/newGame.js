@@ -1,4 +1,11 @@
 var playerNumberButtons = document.getElementsByClassName("radio-btn");
+var createGameButton = document.getElementById("create-game-button");
+var gameNameInput = document.getElementById("game-name");
+var numberOfPlayers;
+var gameId = "NoName";
+
+gameNameInput.addEventListener("change", changeGameName);
+createGameButton.addEventListener("click", createGame);
 
 for (var i = 0; i < playerNumberButtons.length; i++) {
   var button = playerNumberButtons[i];
@@ -7,7 +14,7 @@ for (var i = 0; i < playerNumberButtons.length; i++) {
 
 function changeNumberPlayers(event) {
   var buttonClicked = event.target;
-  var numberOfPlayers = parseInt(buttonClicked.getAttribute("value"));
+  numberOfPlayers = parseInt(buttonClicked.getAttribute("value"));
   console.log(numberOfPlayers + " Players selected");
   var playerContainer = document.getElementsByClassName("player-name-container")[0];
   var playerDivs = playerContainer.getElementsByClassName("player-name");
@@ -32,4 +39,15 @@ function changeNumberPlayers(event) {
       playerContainer.append(newPlayerDiv);
     }
   }
+}
+
+function changeGameName() {
+  let gameLink = createGameButton.href;
+  gameLink += "?gameid=" + gameId;
+  createGameButton.href = gameLink;
+  console.log(createGameButton.href);
+}
+
+function createGame() {
+  // Do a bunch of stuff
 }

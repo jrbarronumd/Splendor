@@ -1,5 +1,6 @@
 import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
+
 var numberOfPlayers = 3;
 var gameBoardCards = document.getElementsByClassName("board-card");
 var gameBoardGems = document.getElementsByClassName("board-gem");
@@ -14,20 +15,22 @@ for (var i = 0; i < 6; i++) {
   button.addEventListener("click", boardGemClickHandler);
 }
 
-const noblesDeck = new NoblesDeck();
-const blueDeck = new CardsDeck();
-const yellowDeck = new CardsDeck();
-const greenDeck = new CardsDeck();
+let noblesDeck = new NoblesDeck();
+let blueDeck = new CardsDeck();
+let yellowDeck = new CardsDeck();
+let greenDeck = new CardsDeck();
+let boardCards = new CardsDeck();
 
 blueDeck.blueDeck();
 yellowDeck.yellowDeck();
 greenDeck.greenDeck();
 
-// place proper number of nobles and adjust size
+// place proper number of nobles and adjust size.  Remove the rest of the nobles from the deck
 //TODO: adjust nobles-row img{} CSS to change max-width
 dealCards();
 function dealCards() {
   noblesDeck.shuffle();
+  noblesDeck.deal(numberOfPlayers + 1);
   console.log(noblesDeck.nobles);
   let noblesContainer = document.getElementsByClassName("nobles-row")[0];
   let newDivContents = `<img src="images\\nobles\\nobles-${noblesDeck.nobles[0].nobleId}.jpg" />`;
@@ -39,9 +42,7 @@ function dealCards() {
   blueDeck.shuffle();
   yellowDeck.shuffle();
   greenDeck.shuffle();
-  console.log(blueDeck.cards);
-  console.log(yellowDeck.cards);
-  console.log(greenDeck.cards);
+  console.log(boardCards.cards);
 
   for (let i = 0; i < 4; i++) {
     const dealBlueCard = blueDeck.deal();
@@ -50,11 +51,17 @@ function dealCards() {
     document.getElementById(`board-blue-${i + 1}`).src = `images\\cards\\blue-${dealBlueCard.cardId}.jpg`;
     document.getElementById(`board-yellow-${i + 1}`).src = `images\\cards\\yellow-${dealYellowCard.cardId}.jpg`;
     document.getElementById(`board-green-${i + 1}`).src = `images\\cards\\green-${dealGreenCard.cardId}.jpg`;
+    boardCards.addOnTop(dealBlueCard);
   }
 }
 
 function boardCardClickHandler() {
-  console.log("Card clicked");
+  var xhr = new XMLHttpRequest();
+  xhr.responseType = "json";
+  var body = { players: 4, id: 1 };
+  xhr.open("POST", "/api/db/", true);
+  xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+  xhr.send(JSON.stringify(body));
 }
 
 function boardGemClickHandler() {

@@ -16,5 +16,9 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
+  },
+  "nodemonConfig": {
+    "ignore": ["public-files/*", "db/*"],
+    "delay": 750
   }
 }

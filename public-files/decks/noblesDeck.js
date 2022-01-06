@@ -13,6 +13,10 @@ export default class NoblesDeck {
       this.nobles[i] = oldValue;
     }
   }
+
+  deal(players) {
+    this.nobles = this.nobles.slice(0, players);
+  }
 }
 
 class Noble {

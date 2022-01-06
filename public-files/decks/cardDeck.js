@@ -33,6 +33,10 @@ export default class CardsDeck {
   deal() {
     return this.cards.shift();
   }
+
+  addOnTop(addCard) {
+    return this.cards.unshift(addCard);
+  }
 }
 
 class Card {
