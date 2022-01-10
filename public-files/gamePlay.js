@@ -56,12 +56,7 @@ function dealCards() {
 }
 
 function boardCardClickHandler() {
-  var xhr = new XMLHttpRequest();
-  xhr.responseType = "json";
-  var body = { players: 4, id: 1 };
-  xhr.open("POST", "/api/db/", true);
-  xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-  xhr.send(JSON.stringify(body));
+  // Do some stuff
 }
 
 function boardGemClickHandler() {

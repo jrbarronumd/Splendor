@@ -12,13 +12,16 @@
   },
   "dependencies": {
     "express": "^4.17.1",
+    "knex": "^0.95.15",
     "sqlite3": "^4.2.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.15"
   },
   "nodemonConfig": {
-    "ignore": ["public-files/*", "db/*"],
+    "ignore": [
+      "public-files/*"
+    ],
     "delay": 750
   }
 }

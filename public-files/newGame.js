@@ -1,15 +1,33 @@
+import NoblesDeck from "./decks/noblesDeck.js";
+import CardsDeck from "./decks/cardDeck.js";
+
 var playerNumberButtons = document.getElementsByClassName("radio-btn");
 var createGameButton = document.getElementById("create-game-button");
 var gameNameInput = document.getElementById("game-name");
-var numberOfPlayers;
-var gameId = "NoName";
+var playerNameInput = document.getElementsByClassName("create-player");
+let baseGameLink = createGameButton.href;
+var numberOfPlayers = 2;
+let gameLink, gameId;
+var startingGems = [0, 0, 4, 5, 7]; // simple but ugly way of setting number of gems. Seems like JSON values should be possible to utilize...
+var playerNames = ["Player 1", "Player 2", "Player 3", "Player 4"];
 
+//generate random game ID
+var randomGameId = Math.floor(Math.random() * 65535);
+randomGameId = randomGameId.toString(16);
+gameId = randomGameId;
+
+// Add event listeners
 gameNameInput.addEventListener("change", changeGameName);
 createGameButton.addEventListener("click", createGame);
 
 for (var i = 0; i < playerNumberButtons.length; i++) {
   var button = playerNumberButtons[i];
   button.addEventListener("change", changeNumberPlayers);
+}
+
+for (var i = 0; i < playerNameInput.length; i++) {
+  var input = playerNameInput[i];
+  input.addEventListener("change", changePlayerName);
 }
 
 function changeNumberPlayers(event) {
@@ -33,21 +51,114 @@ function changeNumberPlayers(event) {
       newPlayerDiv.classList.add("player-name", `player-${i}`);
       let newDivContents = `
         <div>
-            <input type="text" placeholder="Player ${i} name" class="create-player"/>
+            <input type="text" placeholder="Player ${i} name" id="player-name-${i}" class="create-player"/>
         </div>`;
       newPlayerDiv.innerHTML = newDivContents;
       playerContainer.append(newPlayerDiv);
     }
   }
+  // Recreate event listeners
+  for (var i = 0; i < playerNameInput.length; i++) {
+    var input = playerNameInput[i];
+    input.addEventListener("change", changePlayerName);
+  }
+}
+
+function changePlayerName(event) {
+  let inputChanged = event.target;
+  let name = inputChanged.value;
+  let playerNum = parseInt(inputChanged.id.slice(-1)) - 1;
+
+  if (name != "") {
+    if (name.search(/[^A-Za-z0-9/\s]/g) > 0) {
+      // (if user enters anything other than letters, numbers, or spaces)
+      alert("Please don't use any weird characters in the Player Names");
+      inputChanged.value = "";
+      playerNames[playerNum] = `Player ${playerNum}`;
+    } else {
+      playerNames[playerNum] = name;
+    }
+  } else {
+    inputChanged.value = "";
+    playerNames[playerNum] = `Player ${playerNum}`;
+  }
 }
 
 function changeGameName() {
-  let gameLink = createGameButton.href;
-  gameLink += "?gameid=" + gameId;
-  createGameButton.href = gameLink;
-  console.log(createGameButton.href);
+  if (gameNameInput.value != "") {
+    gameId = gameNameInput.value;
+    if (gameId.search(/[^A-Za-z0-9/\s]/g) > 0) {
+      // (if user enters anything other than letters, numbers, or spaces)
+      gameId = randomGameId;
+      alert("Please don't use any weird characters in the game name");
+      gameNameInput.value = "";
+      return;
+    }
+    gameId = gameId.replace(/[^A-Za-z0-9]+/g, "-"); // Replace any non-alphanumeric (should only be spaces after previous check) with "-"
+    gameId = gameId.toLowerCase(); // Convert to lower case so there is no confusion with database
+    // Check for existing game with same name
+    var xhr = new XMLHttpRequest();
+    xhr.responseType = "json";
+    xhr.open("POST", "/api/db/checkName");
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xhr.send(JSON.stringify({ game_id: gameId }));
+    xhr.onload = () => {
+      if (xhr.readyState === 4) {
+        if (xhr.response[0]) {
+          gameId = randomGameId;
+          alert("Duplicate game name.  Please try again.");
+          gameNameInput.value = "";
+          return;
+        }
+      }
+    };
+  } else {
+    gameId = randomGameId;
+  }
 }
 
-function createGame() {
-  // Do a bunch of stuff
+function createGame(event) {
+  event.preventDefault();
+  let noblesDeck = new NoblesDeck();
+  let blueDeck = new CardsDeck();
+  let yellowDeck = new CardsDeck();
+  let greenDeck = new CardsDeck();
+  blueDeck.blueDeck();
+  yellowDeck.yellowDeck();
+  greenDeck.greenDeck();
+  noblesDeck.shuffle();
+  blueDeck.shuffle();
+  yellowDeck.shuffle();
+  greenDeck.shuffle();
+  noblesDeck.deal(numberOfPlayers + 1);
+
+  var xhr = new XMLHttpRequest();
+  var body = {
+    gameId: gameId,
+    players: numberOfPlayers,
+    saveId: 0,
+    nobles: noblesDeck.nobles,
+    blueDeck: blueDeck.cards,
+    yellowDeck: yellowDeck.cards,
+    greenDeck: greenDeck.cards,
+    boardGems: {
+      gold: 5,
+      black: startingGems[numberOfPlayers],
+      red: startingGems[numberOfPlayers],
+      green: startingGems[numberOfPlayers],
+      blue: startingGems[numberOfPlayers],
+      white: startingGems[numberOfPlayers],
+    },
+    p1: { name: playerNames[0] },
+    p2: { name: playerNames[1] },
+    p3: { name: playerNames[2] },
+    p4: { name: playerNames[3] },
+  };
+  xhr.responseType = "json";
+  xhr.open("POST", "/api/db/newGame");
+  xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+  xhr.send(JSON.stringify(body));
+
+  gameLink = baseGameLink + "?game_id=" + gameId;
+  window.location = gameLink;
 }

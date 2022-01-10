@@ -4,27 +4,56 @@ const http = require("http");
 const PORT = process.env.PORT || 8585;
 const app = express();
 const server = http.createServer(app);
-var bodyParser = require("body-parser");
 const dbOperations = require("./db/dbOperations.js");
-
-dbOperations.dbInitialize();
-dbOperations.createTable();
-dbOperations.dbClose();
+var bodyParser = require("body-parser");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.post("/api/db/", (req, res) => {
-  dbOperations.dbInitialize();
-  dbOperations.addRow("ID1", req.body.id, req.body.players);
-  res.json({
-    message: "success",
-  });
-  dbOperations.dbClose();
+dbOperations.createGamesTable();
+
+// Used to verify a unique game name was entered
+app.post("/api/db/checkName", async (req, res) => {
+  const gameId = req.body.game_id;
+  const result = await dbOperations.checkForGameId(gameId);
+  res.status(200).json(result);
 });
 
-//dbOperations.addRow("game_id", save_id, players);
-//dbOperations.addData("1A", 0, "blue_deck", "other text here");
+// Creating a new game entry in the database
+app.post("/api/db/newGame", async (req, res) => {
+  const gameId = req.body.gameId;
+  const players = req.body.players;
+  const saveId = req.body.saveId;
+  const nobles = JSON.stringify(req.body.nobles);
+  const blueDeck = JSON.stringify(req.body.blueDeck);
+  const yellowDeck = JSON.stringify(req.body.yellowDeck);
+  const greenDeck = JSON.stringify(req.body.greenDeck);
+  const boardGems = JSON.stringify(req.body.boardGems);
+  const p1 = JSON.stringify(req.body.p1);
+  const p2 = JSON.stringify(req.body.p2);
+  const p3 = JSON.stringify(req.body.p3);
+  const p4 = JSON.stringify(req.body.p4);
+  const result = await dbOperations.createGame(gameId, players, saveId, nobles, blueDeck, yellowDeck, greenDeck, boardGems, p1, p2, p3, p4);
+  console.log(`Game ${gameId} added to database`);
+  res.status(201).json(result);
+});
+
+app.get("/api/db/lobby", async (req, res) => {
+  const gameId = req.query.game_id;
+  let result = await dbOperations.getGame(gameId);
+  //knex returns the data in brackets [] and it does not parse well.
+  // 'result[0]' gives the full amount of data without the brackets.
+  // Not an elegant solution, but it does work well I think.  Not sure if I'm miss-using knex in some way...
+  res.status(200).json(result[0]);
+});
+
+app.post("/api/db/newRow", async (req, res) => {
+  const gameId = "my-game-2";
+  const result = await dbOperations.createGame();
+  res.status(201).json(result);
+});
+
+//app.use("/api/db", dbRouter); //still worth having a router???*******************************************
 
 // Set static folder, set default extension so .html is not required in url
 // Not sure if the use of 'path.join' in this way is necessary - static("./public-files/") should work ok?

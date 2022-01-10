@@ -6,7 +6,7 @@
     <title>Splendor | Create Game</title>
     <link rel="stylesheet" href="styles.css" />
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat&display=swap" rel="stylesheet" />
-    <script src="newGame.js" defer></script>
+    <script src="newGame.js" type="module" defer></script>
   </head>
   <body>
     <header class="header"></header>
@@ -41,17 +41,17 @@
     <div class="user-entry player-name-container">
       <div class="player-name player-1">
         <div>
-          <input type="text" placeholder="Player 1 name" class="create-player" />
+          <input type="text" placeholder="Player 1 name" id="player-name-1" class="create-player" />
         </div>
       </div>
       <div class="player-name player-2">
         <div>
-          <input type="text" placeholder="Player 2 name" class="create-player" />
+          <input type="text" placeholder="Player 2 name" id="player-name-2" class="create-player" />
         </div>
       </div>
     </div>
     <div class="nav">
-      <span><a id="create-game-button" href="gameLobby">Start Game</a></span>
+      <span><a id="create-game-button" href="gameLobby">Create Game</a></span>
       <span><a href="index">Go Back</a></span>
       <span><a href="savedGames">Saved Games</a></span>
     </div>
