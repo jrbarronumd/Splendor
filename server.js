@@ -38,13 +38,16 @@ app.post("/api/db/newGame", async (req, res) => {
   res.status(201).json(result);
 });
 
-app.get("/api/db/lobby", async (req, res) => {
+app.get("/api/db/getGame", async (req, res) => {
   const gameId = req.query.game_id;
   let result = await dbOperations.getGame(gameId);
-  //knex returns the data in brackets [] and it does not parse well.
-  // 'result[0]' gives the full amount of data without the brackets.
-  // Not an elegant solution, but it does work well I think.  Not sure if I'm miss-using knex in some way...
-  res.status(200).json(result[0]);
+  let rows = result.length;
+  res.status(200).json(result[rows - 1]); // (only one row necessary - last row in this case)
+});
+
+app.get("/api/db/savedGames", async (req, res) => {
+  let result = await dbOperations.getSavedGames();
+  res.status(200).json(result);
 });
 
 app.post("/api/db/newRow", async (req, res) => {
@@ -52,8 +55,6 @@ app.post("/api/db/newRow", async (req, res) => {
   const result = await dbOperations.createGame();
   res.status(201).json(result);
 });
-
-//app.use("/api/db", dbRouter); //still worth having a router???*******************************************
 
 // Set static folder, set default extension so .html is not required in url
 // Not sure if the use of 'path.join' in this way is necessary - static("./public-files/") should work ok?

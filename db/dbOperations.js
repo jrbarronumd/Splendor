@@ -6,7 +6,7 @@ async function createGamesTable() {
       console.log(`"games" Table does not exist.  Must be created`);
       return knex.schema.createTable("games", function (table) {
         table.text("game_id");
-        table.integer("save_id");
+        table.real("save_id");
         table.integer("players");
         table.text("nobles");
         table.text("blue_deck");
@@ -14,13 +14,18 @@ async function createGamesTable() {
         table.text("green_deck");
         table.text("board_gems");
         table.text("player_1");
-        table.json("player_2");
+        table.text("player_2");
         table.text("player_3");
         table.text("player_4");
+        table.text("date_created");
       });
     }
     console.log(`"games" Table exists - no action taken`);
   });
+}
+
+function checkForGameId(gameId) {
+  return knex("games").select("players").where("game_id", gameId);
 }
 
 function createGame(gameId, players, saveId, nobles, blueDeck, yellowDeck, greenDeck, boardGems, p1, p2, p3, p4) {
@@ -37,6 +42,7 @@ function createGame(gameId, players, saveId, nobles, blueDeck, yellowDeck, green
     player_2: p2,
     player_3: p3,
     player_4: p4,
+    date_created: Date(),
   });
 }
 
@@ -44,8 +50,8 @@ function getGame(gameId) {
   return knex("games").select("*").where("game_id", gameId);
 }
 
-function checkForGameId(gameId) {
-  return knex("games").select("players").where("game_id", gameId);
+function getSavedGames() {
+  return knex("games").select("game_id", "players", "player_1", "player_2", "player_3", "player_4").where("save_id", 0);
 }
 
-module.exports = { createGamesTable, createGame, getGame, checkForGameId };
+module.exports = { createGamesTable, createGame, getGame, getSavedGames, checkForGameId };

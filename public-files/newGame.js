@@ -8,7 +8,7 @@ var playerNameInput = document.getElementsByClassName("create-player");
 let baseGameLink = createGameButton.href;
 var numberOfPlayers = 2;
 let gameLink, gameId;
-var startingGems = [0, 0, 4, 5, 7]; // simple but ugly way of setting number of gems. Seems like JSON values should be possible to utilize...
+var startingGems = [0, 0, 4, 5, 7]; // simple but ugly way of setting number of gems (i.e. with  3 players, startingGems[3] = 5 gems). Seems like JSON values should be possible to utilize...
 var playerNames = ["Player 1", "Player 2", "Player 3", "Player 4"];
 
 //generate random game ID
@@ -105,6 +105,7 @@ function changeGameName() {
     xhr.onload = () => {
       if (xhr.readyState === 4) {
         if (xhr.response[0]) {
+          // Will be true if duplicate game found.
           gameId = randomGameId;
           alert("Duplicate game name.  Please try again.");
           gameNameInput.value = "";
@@ -116,13 +117,57 @@ function changeGameName() {
     gameId = randomGameId;
   }
 }
+var blankPlayer = {
+  name: "Place Holder",
+  order: 0,
+  points: 0,
+  gems: {
+    gold: 0,
+    white: 0,
+    blue: 0,
+    green: 0,
+    red: 0,
+    black: 0,
+  },
+  bonus: {
+    gold: 0,
+    white: 0,
+    blue: 0,
+    green: 0,
+    red: 0,
+    black: 0,
+  },
+  reserved_cards: [],
+  purchased_cards: [],
+};
 
 function createGame(event) {
   event.preventDefault();
+  playerNames.splice(numberOfPlayers);
   let noblesDeck = new NoblesDeck();
   let blueDeck = new CardsDeck();
   let yellowDeck = new CardsDeck();
   let greenDeck = new CardsDeck();
+
+  let p1Data = JSON.parse(JSON.stringify(blankPlayer));
+  p1Data.name = playerNames[0];
+  p1Data.order = 1;
+  let p2Data = JSON.parse(JSON.stringify(blankPlayer));
+  p2Data.name = playerNames[1];
+  p2Data.order = 2;
+  let p3Data = {};
+  if (numberOfPlayers > 2) {
+    p3Data = JSON.parse(JSON.stringify(blankPlayer));
+    p3Data.name = playerNames[2];
+    p3Data.order = 3;
+  }
+  let p4Data = {};
+  if (numberOfPlayers > 3) {
+    p4Data = JSON.parse(JSON.stringify(blankPlayer));
+    p4Data.name = playerNames[3];
+    p4Data.order = 4;
+  }
+
   blueDeck.blueDeck();
   yellowDeck.yellowDeck();
   greenDeck.greenDeck();
@@ -131,7 +176,6 @@ function createGame(event) {
   yellowDeck.shuffle();
   greenDeck.shuffle();
   noblesDeck.deal(numberOfPlayers + 1);
-
   var xhr = new XMLHttpRequest();
   var body = {
     gameId: gameId,
@@ -149,16 +193,21 @@ function createGame(event) {
       blue: startingGems[numberOfPlayers],
       white: startingGems[numberOfPlayers],
     },
-    p1: { name: playerNames[0] },
-    p2: { name: playerNames[1] },
-    p3: { name: playerNames[2] },
-    p4: { name: playerNames[3] },
+    p1: p1Data,
+    p2: p2Data,
+    p3: p3Data,
+    p4: p4Data,
   };
+
   xhr.responseType = "json";
   xhr.open("POST", "/api/db/newGame");
   xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
   xhr.send(JSON.stringify(body));
 
   gameLink = baseGameLink + "?game_id=" + gameId;
-  window.location = gameLink;
+  xhr.onload = () => {
+    if (xhr.readyState === 4) {
+      window.location = gameLink;
+    }
+  };
 }

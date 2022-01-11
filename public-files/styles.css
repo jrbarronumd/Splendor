@@ -27,8 +27,11 @@ h1 {
 }
 
 .nav {
-  margin: 3em;
+  margin: 2em;
   text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .nav a {
@@ -36,8 +39,8 @@ h1 {
   text-decoration: none;
   color: hsl(0, 0%, 0%);
   background-color: hsl(120, 25%, 65%);
-  margin: 1em;
-  padding: 0.5em;
+  margin: 0.4em;
+  padding: 0.4em;
   border-radius: 10px;
 }
 
@@ -254,7 +257,17 @@ h1 {
   height: 8.2vh;
 }
 
-/* Game lobby proprietary styles:*/
+/* New styles for Game lobby******************************************************/
+.sub-title,
+.instructions {
+  text-align: center;
+}
+
+.instructions {
+  padding: 1.5em;
+  margin-bottom: 1em;
+}
+
 .player-link {
   padding: 20px;
   margin: 10px 0px 10px 15px;
@@ -267,4 +280,60 @@ h1 {
   text-decoration: none;
   color: inherit;
   margin: 1em;
+}
+
+.player-link a:hover {
+  text-decoration: underline;
+}
+
+.copy-button {
+  font-size: 1.1em;
+  padding: 5px;
+  border-radius: 5px;
+  margin-right: 1em;
+  background-color: hsl(200, 70%, 70%);
+  color: black;
+}
+
+.copy-button:hover {
+  cursor: pointer;
+  background-color: hsl(200,30%, 30%);
+  color: inherit;
+}
+
+/* New styles for Saved Games******************************************************/
+.nav-small {
+  margin: 0px;
+}
+
+.nav-small a {
+  font-size: 1.2em;
+}
+
+.games-list {
+  margin: 1.5em;
+  font-size: 1.2em;
+}
+
+.saved-game {
+  margin: 0.6em;
+  background-color: hsl(145, 10%, 32%);
+  padding: 0.5em;
+  border-radius: 5px;
+  letter-spacing: 0.05rem;
+}
+
+.saved-game a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.saved-game-player {
+  padding: 4px;
+  border-radius: 5px;
+  margin-left: 0.4em;
+}
+
+.saved-game a:hover {
+  text-decoration: underline;
 }

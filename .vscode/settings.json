@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "splendor-games",
+            "database": "${workspaceFolder:Splendor}/db/games.db"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}
