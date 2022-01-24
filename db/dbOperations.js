@@ -51,7 +51,7 @@ function getGame(gameId) {
 }
 
 function getSavedGames() {
-  return knex("games").select("game_id", "players", "player_1", "player_2", "player_3", "player_4").where("save_id", 0);
+  return knex("games").select("game_id", "players", "player_1", "player_2", "player_3", "player_4").where("save_id", "1.1");
 }
 
 module.exports = { createGamesTable, createGame, getGame, getSavedGames, checkForGameId };

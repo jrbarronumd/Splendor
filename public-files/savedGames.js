@@ -34,7 +34,7 @@ function loadPageInfo() {
     for (var j = 1; j <= players; j++) {
       let newPlayerSpan = document.createElement("span");
       newPlayerSpan.classList.add(`player-${j}`, "saved-game-player");
-      newPlayerSpan.innerHTML = `<a href="gamePlay?game_id=${gameId}&p=p${j}">${JSON.parse(playerNames[j - 1]).name}</a>`;
+      newPlayerSpan.innerHTML = `<a href="game?game_id=${gameId}&p=p${j}">${JSON.parse(playerNames[j - 1]).name}</a>`;
       newGameSpan.append(newPlayerSpan);
     }
   }

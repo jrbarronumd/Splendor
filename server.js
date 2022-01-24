@@ -20,7 +20,7 @@ app.post("/api/db/checkName", async (req, res) => {
 });
 
 // Creating a new game entry in the database
-app.post("/api/db/newGame", async (req, res) => {
+app.post("/api/db/newRow", async (req, res) => {
   const gameId = req.body.gameId;
   const players = req.body.players;
   const saveId = req.body.saveId;
@@ -34,7 +34,7 @@ app.post("/api/db/newGame", async (req, res) => {
   const p3 = JSON.stringify(req.body.p3);
   const p4 = JSON.stringify(req.body.p4);
   const result = await dbOperations.createGame(gameId, players, saveId, nobles, blueDeck, yellowDeck, greenDeck, boardGems, p1, p2, p3, p4);
-  console.log(`Game ${gameId} added to database`);
+  console.log(`Row for game ${gameId} added to database`);
   res.status(201).json(result);
 });
 

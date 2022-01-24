@@ -30,7 +30,7 @@ function loadPageInfo() {
   for (var x = 0; x <= numberOfPlayers - 1; x++) {
     let name = JSON.parse(playerNames[x]).name;
     linkContainer.children[x].children[0].innerText = name;
-    linkContainer.children[x].children[0].href = `gamePlay?game_id=${gameId}&p=p${x + 1}`;
+    linkContainer.children[x].children[0].href = `game?game_id=${gameId}&p=p${x + 1}`;
     linkContainer.getElementsByClassName("copy-button")[x].addEventListener("click", copyButtonClickHandler);
   }
   function copyButtonClickHandler(event) {

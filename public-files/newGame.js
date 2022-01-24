@@ -8,7 +8,7 @@ var playerNameInput = document.getElementsByClassName("create-player");
 let baseGameLink = createGameButton.href;
 var numberOfPlayers = 2;
 let gameLink, gameId;
-var startingGems = [0, 0, 4, 5, 7]; // simple but ugly way of setting number of gems (i.e. with  3 players, startingGems[3] = 5 gems). Seems like JSON values should be possible to utilize...
+var startingGems = [0, 0, 4, 5, 7]; // ugly but simple way of setting number of gems (i.e. with  3 players, startingGems[3] = 5 gems). Seems like JSON values should be possible to utilize...
 var playerNames = ["Player 1", "Player 2", "Player 3", "Player 4"];
 
 //generate random game ID
@@ -35,7 +35,7 @@ function changeNumberPlayers(event) {
   numberOfPlayers = parseInt(buttonClicked.getAttribute("value"));
   console.log(numberOfPlayers + " Players selected");
   var playerContainer = document.getElementsByClassName("player-name-container")[0];
-  var playerDivs = playerContainer.getElementsByClassName("player-name");
+  var playerDivs = playerContainer.getElementsByClassName("new-player-name");
   var currentPlayers = playerDivs.length;
 
   // Remove players if there are too many
@@ -48,7 +48,7 @@ function changeNumberPlayers(event) {
   for (let i = 1; i <= numberOfPlayers; i++) {
     if (i > currentPlayers) {
       let newPlayerDiv = document.createElement("div");
-      newPlayerDiv.classList.add("player-name", `player-${i}`);
+      newPlayerDiv.classList.add("new-player-name", `player-${i}`);
       let newDivContents = `
         <div>
             <input type="text" placeholder="Player ${i} name" id="player-name-${i}" class="create-player"/>
@@ -180,7 +180,7 @@ function createGame(event) {
   var body = {
     gameId: gameId,
     players: numberOfPlayers,
-    saveId: 0,
+    saveId: "1.1",
     nobles: noblesDeck.nobles,
     blueDeck: blueDeck.cards,
     yellowDeck: yellowDeck.cards,
@@ -200,7 +200,7 @@ function createGame(event) {
   };
 
   xhr.responseType = "json";
-  xhr.open("POST", "/api/db/newGame");
+  xhr.open("POST", "/api/db/newRow");
   xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
   xhr.send(JSON.stringify(body));
 

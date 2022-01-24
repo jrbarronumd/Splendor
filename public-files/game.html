@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<!-- TODO: a long player name will kill the player container display.  Fix that... -->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Splendor | Game Play</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat&display=swap" rel="stylesheet" />
+    <script src="gamePlay.js" type="module" defer></script>
+  </head>
+  <body>
+    <div class="game-table">
+      <div class="game-board">
+        <div class="game-board-rows">
+          <div class="nobles-row">
+            <img src="images\nobles\nobles-00.jpg" />
+            <img src="images\nobles\nobles-00.jpg" />
+            <img src="images\nobles\nobles-00.jpg" />
+            <img src="images\nobles\nobles-00.jpg" />
+            <img src="images\nobles\nobles-00.jpg" />
+          </div>
+          <div class="card-row">
+            <div class="card-deck-container">
+              <img id="board-blue-deck" src="images\cards\blue-00.jpg" />
+              <span class="deck-counter">(0)</span>
+            </div>
+            <div class="card-container">
+              <img id="board-blue-1" src="images\cards\blue-00.jpg" />
+            </div>
+            <div class="card-container">
+              <img id="board-blue-2" src="images\cards\blue-00.jpg" />
+            </div>
+            <div class="card-container">
+              <img id="board-blue-3" src="images\cards\blue-00.jpg" />
+            </div>
+            <div class="card-container">
+              <img id="board-blue-4" src="images\cards\blue-00.jpg" />
+            </div>
+          </div>
+          <div class="card-row">
+            <div class="card-deck-container">
+              <img id="board-yellow-deck" src="images\cards\yellow-00.jpg" />
+              <span class="deck-counter">(0)</span>
+            </div>
+            <div class="card-container">
+              <img id="board-yellow-1" src="images\cards\yellow-00.jpg" />
+            </div>
+            <div class="card-container">
+              <img id="board-yellow-2" src="images\cards\yellow-00.jpg" />
+            </div>
+            <div class="card-container">
+              <img id="board-yellow-3" src="images\cards\yellow-00.jpg" />
+            </div>
+            <div class="card-container">
+              <img id="board-yellow-4" src="images\cards\yellow-00.jpg" />
+            </div>
+          </div>
+          <div class="card-row">
+            <div class="card-deck-container">
+              <img id="board-green-deck" src="images\cards\green-00.jpg" />
+              <span class="deck-counter">(0)</span>
+            </div>
+            <div class="card-container">
+              <img id="board-green-1" src="images\cards\green-00.jpg" />
+            </div>
+            <div class="card-container">
+              <img id="board-green-2" src="images\cards\green-00.jpg" />
+            </div>
+            <div class="card-container">
+              <img id="board-green-3" src="images\cards\green-00.jpg" />
+            </div>
+            <div class="card-container">
+              <img id="board-green-4" src="images\cards\green-00.jpg" />
+            </div>
+          </div>
+        </div>
+        <div class="gems-column">
+          <div class="gem-container">
+            <img class="gem-img" src="images/gems/goldGem.jpg" />
+            <span class="board-gem-count">0</span>
+          </div>
+          <div class="gem-container">
+            <img class="gem-img" src="images/gems/whiteGem.jpg" />
+            <span class="board-gem-count">0</span>
+          </div>
+          <div class="gem-container">
+            <img class="gem-img" src="images/gems/blueGem.jpg" />
+            <span class="board-gem-count">0</span>
+          </div>
+          <div class="gem-container">
+            <img class="gem-img" src="images/gems/greenGem.jpg" />
+            <span class="board-gem-count">0</span>
+          </div>
+          <div class="gem-container">
+            <img class="gem-img" src="images/gems/redGem.jpg" />
+            <span class="board-gem-count">0</span>
+          </div>
+          <div class="gem-container">
+            <img class="gem-img" src="images/gems/blackGem.jpg" />
+            <span class="board-gem-count">0</span>
+          </div>
+        </div>
+      </div>
+      <div class="players">
+        <div class="turn-marker">Player X's Turn</div>
+        <div id="in-turn-player" class="main-player-container player-container player-1">
+          <div class="action-buttons">
+            <span id="reset-turn">Reset Turn</span>
+            <span id="claim-noble">Claim Noble</span>
+            <span id="buy-reserved">Buy Reserved Card</span>
+            <span id="end-turn">End Turn</span>
+          </div>
+          <div class="main-player-title">
+            <span class="player-gold-gem"> </span>
+            <span id="player-1-name" class="player-name">Player 1X</span>
+            <span class="player-score">Score: 0</span>
+          </div>
+          <div class="main-player-gem-row">
+            <div class="player-counter-labels">
+              <div>Tokens:</div>
+              <div>Cards:</div>
+            </div>
+            <div class="player-gem-container">
+              <img class="gem-img" src="images/gems/whiteGem.jpg" />
+              <div class="player-gem-count">0</div>
+              <div class="player-bonus">(0)</div>
+            </div>
+            <div class="player-gem-container">
+              <img class="gem-img" src="images/gems/blueGem.jpg" />
+              <div class="player-gem-count">0</div>
+              <div class="player-bonus">(0)</div>
+            </div>
+            <div class="player-gem-container">
+              <img class="gem-img" src="images/gems/greenGem.jpg" />
+              <div class="player-gem-count">0</div>
+              <div class="player-bonus">(0)</div>
+            </div>
+            <div class="player-gem-container">
+              <img class="gem-img" src="images/gems/redGem.jpg" />
+              <div class="player-gem-count">0</div>
+              <div class="player-bonus">(0)</div>
+            </div>
+            <div class="player-gem-container">
+              <img class="gem-img" src="images/gems/blackGem.jpg" />
+              <div class="player-gem-count">0</div>
+              <div class="player-bonus">(0)</div>
+            </div>
+          </div>
+          <div class="player-drop-down"></div>
+        </div>
+        <div class="player-container player-2">
+          <div class="player-title">
+            <span class="player-gold-gem"> </span>
+            <span id="player-2-name" class="player-name">Player 2X</span>
+            <span class="player-score">Score: 0</span>
+          </div>
+          <div class="player-gem-row">
+            <div class="player-gem-container">
+              <img src="images/gems/whiteGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+            <div class="player-gem-container">
+              <img src="images/gems/blueGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+            <div class="player-gem-container">
+              <img src="images/gems/greenGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+            <div class="player-gem-container">
+              <img src="images/gems/redGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+            <div class="player-gem-container">
+              <img src="images/gems/blackGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+          </div>
+          <div class="player-drop-down"></div>
+        </div>
+        <div class="player-container player-3">
+          <div class="player-title">
+            <span class="player-gold-gem"> </span>
+            <span id="player-3-name" class="player-name">Player 3X</span>
+            <span class="player-score">Score: 0</span>
+          </div>
+          <div class="player-gem-row">
+            <div class="player-gem-container">
+              <img src="images/gems/whiteGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+            <div class="player-gem-container">
+              <img src="images/gems/blueGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+            <div class="player-gem-container">
+              <img src="images/gems/greenGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+            <div class="player-gem-container">
+              <img src="images/gems/redGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+            <div class="player-gem-container">
+              <img src="images/gems/blackGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+          </div>
+          <div class="player-drop-down"></div>
+        </div>
+        <div class="player-container player-4">
+          <div class="player-title">
+            <span class="player-gold-gem"> </span>
+            <span id="player-4-name" class="player-name">Player 4X</span>
+            <span class="player-score">Score: 0</span>
+          </div>
+          <div class="player-gem-row">
+            <div class="player-gem-container">
+              <img src="images/gems/whiteGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+            <div class="player-gem-container">
+              <img src="images/gems/blueGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+            <div class="player-gem-container">
+              <img src="images/gems/greenGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+            <div class="player-gem-container">
+              <img src="images/gems/redGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+            <div class="player-gem-container">
+              <img src="images/gems/blackGem.jpg" />
+              <span>
+                <div class="player-gem-count">0</div>
+                <div class="player-bonus">(0)</div>
+              </span>
+            </div>
+          </div>
+          <div class="player-drop-down"></div>
+        </div>
+      </div>
+    </div>
+    <div class="nav">
+      <a href="index">Home</a>
+    </div>
+  </body>
+</html>
