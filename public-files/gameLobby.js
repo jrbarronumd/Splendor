@@ -1,22 +1,27 @@
 // Game Lobby
+// TODO: Redo structure of this page to use unordered list, like saved games.
+// Current design is also hard to read on a wide screen. Add margin on left, maybe dependent on screen width.
+const socket = io();
 var numberOfPlayers, gameData;
 let myQueryString = new URLSearchParams(window.location.search);
 var gameId = myQueryString.get("game_id");
 
-getGameInfo();
-function getGameInfo() {
-  var xhr = new XMLHttpRequest();
-  xhr.responseType = "json";
-  xhr.open("GET", `/api/db/getGame?game_id=${gameId}`);
-  xhr.send();
-  xhr.onload = () => {
-    if (xhr.readyState === 4) {
-      gameData = xhr.response;
-      numberOfPlayers = JSON.parse(gameData.players);
-      loadPageInfo();
-    }
-  };
-}
+// As soon as connection is made, join user to the game's socket room, which will initiate game data push
+socket.on("connect", () => {
+  socket.emit("game-load", gameId, "(Game Lobby)");
+});
+
+// When connection is confirmed by server, log socket ID to console
+socket.on("connected", (result) => {
+  console.log(result);
+});
+
+// Server pushed gameData after connection.
+socket.on("game-data", (respData) => {
+  gameData = respData;
+  numberOfPlayers = JSON.parse(gameData.players);
+  loadPageInfo();
+});
 
 function loadPageInfo() {
   var linkContainer = document.getElementsByClassName("link-container")[0];

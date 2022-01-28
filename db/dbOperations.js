@@ -28,7 +28,7 @@ function checkForGameId(gameId) {
   return knex("games").select("players").where("game_id", gameId);
 }
 
-function createGame(gameId, players, saveId, nobles, blueDeck, yellowDeck, greenDeck, boardGems, p1, p2, p3, p4) {
+function addGameRow(gameId, players, saveId, nobles, blueDeck, yellowDeck, greenDeck, boardGems, p1, p2, p3, p4) {
   return knex("games").insert({
     game_id: gameId,
     players: players,
@@ -47,11 +47,11 @@ function createGame(gameId, players, saveId, nobles, blueDeck, yellowDeck, green
 }
 
 function getGame(gameId) {
-  return knex("games").select("*").where("game_id", gameId);
+  return knex("games").select("*").where("game_id", gameId).orderBy("date_created", "desc").limit(1);
 }
 
 function getSavedGames() {
   return knex("games").select("game_id", "players", "player_1", "player_2", "player_3", "player_4").where("save_id", "1.1");
 }
 
-module.exports = { createGamesTable, createGame, getGame, getSavedGames, checkForGameId };
+module.exports = { createGamesTable, addGameRow, getGame, getSavedGames, checkForGameId };

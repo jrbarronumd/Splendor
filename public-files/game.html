@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="styles.css" />
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat&display=swap" rel="stylesheet" />
     <script src="gamePlay.js" type="module" defer></script>
+    <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
     <div class="game-table">
@@ -104,8 +105,8 @@
         </div>
       </div>
       <div class="players">
-        <div class="turn-marker">Player X's Turn</div>
-        <div id="in-turn-player" class="main-player-container player-container player-1">
+        <div id="turn-marker">Player X's Turn</div>
+        <div class="main-player-container player-container player-1">
           <div class="action-buttons">
             <span id="reset-turn">Reset Turn</span>
             <span id="claim-noble">Claim Noble</span>

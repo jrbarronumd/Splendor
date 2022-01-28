@@ -134,7 +134,7 @@ h1 {
   padding: 20px;
   margin: 10px 0px 10px 15px;
   border-radius: 5px;
-  width: 50%;
+  width: max-content;
 }
 
 .player-link a {

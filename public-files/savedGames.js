@@ -1,21 +1,31 @@
+// Saved game listing
+
+const socket = io();
 var gameData;
 
-getGames();
-function getGames() {
-  var xhr = new XMLHttpRequest();
-  xhr.responseType = "json";
-  xhr.open("GET", "/api/db/savedGames");
-  xhr.send();
-  xhr.onload = () => {
-    if (xhr.readyState === 4) {
-      gameData = xhr.response;
-      loadPageInfo();
-    }
-  };
+// Request saved game data
+function requestGames() {
+  socket.emit("saved-game-request");
 }
 
+socket.on("connected", (message) => {
+  console.log(message);
+  requestGames();
+});
+
+// Upon receiving the data from the server
+socket.on("saved-game-data", (savedGameData) => {
+  gameData = savedGameData;
+  //  In case this is a reconnect, and the list has already rendered.
+  const parent = document.getElementsByClassName("games-list")[0];
+  while (parent.firstChild) {
+    parent.firstChild.remove();
+  }
+  loadPageInfo();
+});
+
 function loadPageInfo() {
-  rows = gameData.length;
+  let rows = gameData.length;
   console.log(rows + " games to load");
   const gamesList = document.getElementsByClassName("games-list")[0];
   for (var i = rows - 1; i >= 0; i--) {

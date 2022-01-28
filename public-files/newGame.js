@@ -1,6 +1,11 @@
+// Create New Game
+
+// TODO: add solo mode as option.  different logic to employ, probably?
+
 import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
+const socket = io();
 var playerNumberButtons = document.getElementsByClassName("radio-btn");
 var createGameButton = document.getElementById("create-game-button");
 var gameNameInput = document.getElementById("game-name");
@@ -12,24 +17,22 @@ var startingGems = [0, 0, 4, 5, 7]; // ugly but simple way of setting number of 
 var playerNames = ["Player 1", "Player 2", "Player 3", "Player 4"];
 
 //generate random game ID
-var randomGameId = Math.floor(Math.random() * 65535);
-randomGameId = randomGameId.toString(16);
+var randomGameId = [...Array(8)].map(() => Math.floor(Math.random() * 17).toString(16)).join("");
 gameId = randomGameId;
 
 // Add event listeners
 gameNameInput.addEventListener("change", changeGameName);
 createGameButton.addEventListener("click", createGame);
-
 for (var i = 0; i < playerNumberButtons.length; i++) {
   var button = playerNumberButtons[i];
   button.addEventListener("change", changeNumberPlayers);
 }
-
 for (var i = 0; i < playerNameInput.length; i++) {
   var input = playerNameInput[i];
   input.addEventListener("change", changePlayerName);
 }
 
+// Handle number of players change
 function changeNumberPlayers(event) {
   var buttonClicked = event.target;
   numberOfPlayers = parseInt(buttonClicked.getAttribute("value"));
@@ -96,23 +99,16 @@ function changeGameName() {
     }
     gameId = gameId.replace(/[^A-Za-z0-9]+/g, "-"); // Replace any non-alphanumeric (should only be spaces after previous check) with "-"
     gameId = gameId.toLowerCase(); // Convert to lower case so there is no confusion with database
+
     // Check for existing game with same name
-    var xhr = new XMLHttpRequest();
-    xhr.responseType = "json";
-    xhr.open("POST", "/api/db/checkName");
-    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-    xhr.send(JSON.stringify({ game_id: gameId }));
-    xhr.onload = () => {
-      if (xhr.readyState === 4) {
-        if (xhr.response[0]) {
-          // Will be true if duplicate game found.
-          gameId = randomGameId;
-          alert("Duplicate game name.  Please try again.");
-          gameNameInput.value = "";
-          return;
-        }
+    socket.emit("check-name", gameId, (response) => {
+      if (response[0]) {
+        gameId = randomGameId;
+        alert("Duplicate game name.  Please try again.");
+        gameNameInput.value = "";
+        return;
       }
-    };
+    });
   } else {
     gameId = randomGameId;
   }
@@ -176,16 +172,15 @@ function createGame(event) {
   yellowDeck.shuffle();
   greenDeck.shuffle();
   noblesDeck.deal(numberOfPlayers + 1);
-  var xhr = new XMLHttpRequest();
   var body = {
-    gameId: gameId,
+    game_id: gameId,
     players: numberOfPlayers,
-    saveId: "1.1",
+    save_id: "1.1",
     nobles: noblesDeck.nobles,
-    blueDeck: blueDeck.cards,
-    yellowDeck: yellowDeck.cards,
-    greenDeck: greenDeck.cards,
-    boardGems: {
+    blue_deck: blueDeck.cards,
+    yellow_deck: yellowDeck.cards,
+    green_deck: greenDeck.cards,
+    board_gems: {
       gold: 5,
       black: startingGems[numberOfPlayers],
       red: startingGems[numberOfPlayers],
@@ -193,21 +188,12 @@ function createGame(event) {
       blue: startingGems[numberOfPlayers],
       white: startingGems[numberOfPlayers],
     },
-    p1: p1Data,
-    p2: p2Data,
-    p3: p3Data,
-    p4: p4Data,
+    player_1: p1Data,
+    player_2: p2Data,
+    player_3: p3Data,
+    player_4: p4Data,
   };
-
-  xhr.responseType = "json";
-  xhr.open("POST", "/api/db/newRow");
-  xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-  xhr.send(JSON.stringify(body));
-
+  socket.emit("new-row", body);
   gameLink = baseGameLink + "?game_id=" + gameId;
-  xhr.onload = () => {
-    if (xhr.readyState === 4) {
-      window.location = gameLink;
-    }
-  };
+  window.location = gameLink;
 }

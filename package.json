@@ -13,6 +13,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "knex": "^0.95.15",
+    "socket.io": "^4.4.1",
     "sqlite3": "^4.2.0"
   },
   "devDependencies": {

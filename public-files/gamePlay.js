@@ -4,11 +4,12 @@ import CardsDeck from "./decks/cardDeck.js";
 // TODO: Turn player gem count text red (or some other color) when totalPlayerGems > 10
 // Also make it obvious when someone eclipses 15 points
 // Need a game log
-// Outline recently replaced cards and taken gems (double outline if double taken)
-// What if a player clicks to return a gem before clicking on any to buy? Just don't be dumb?
-
+// Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
+// Add round counter along with turn marker on top of page
+const socket = io();
 var numberOfPlayers, gameData, pData, boardGems, totalPlayerGems, p1Data, p2Data, p3Data, p4Data;
 var takenGemColor = [];
+var allPlayers = {};
 var playerOrder = [0, 1, 2, 3, 4, 1, 2, 3];
 var myQueryString = new URLSearchParams(window.location.search);
 var gameId = myQueryString.get("game_id");
@@ -33,7 +34,6 @@ var endTurnButton = document.getElementById("end-turn");
 var buyReservedButton = document.getElementById("buy-reserved");
 var claimNobleButton = document.getElementById("claim-noble");
 resetTurnButton.addEventListener("click", resetTurnHandler); // Should never be removed
-getGameInfo();
 
 function resetEventListeners() {
   endTurnButton.addEventListener("click", endTurnHandler);
@@ -72,28 +72,70 @@ function removeEventListeners() {
   }
 }
 
-function getGameInfo() {
-  var xhr = new XMLHttpRequest();
-  xhr.responseType = "json";
-  xhr.open("GET", `/api/db/getGame?game_id=${gameId}`);
-  xhr.send();
-  xhr.onload = () => {
-    if (xhr.readyState === 4) {
-      gameData = xhr.response;
-      pData = JSON.parse(gameData[`player_${activePlayer}`]);
-      numberOfPlayers = JSON.parse(gameData.players);
-      pData = JSON.parse(gameData[`player_${activePlayer}`]);
-      boardGems = JSON.parse(gameData.board_gems);
-      dealNobles();
-      dealGems();
-      dealCards();
-      setPlayers();
-    }
-  };
-}
+// As soon as connection is made, join user to the game's socket room, which will initiate game data push
+socket.on("connect", () => {
+  socket.emit("game-load", gameId, activePlayer);
+});
+
+// When connection is confirmed by server, log socket ID to console
+socket.on("connected", (result) => {
+  console.log(result);
+});
+
+// TODO: Use a disconnect event to handle server/client failures?
+
+// Server pushed gameData after connection.  This is the initial game-load ONLY.
+socket.once("game-data", (respData) => {
+  gameData = respData;
+  numberOfPlayers = JSON.parse(gameData.players);
+  pData = JSON.parse(gameData[`player_${activePlayer}`]);
+  boardGems = JSON.parse(gameData.board_gems);
+  inTurnPlayer = parseInt(gameData.save_id.toString().slice(-1));
+  noblesDeck.nobles = JSON.parse(gameData.nobles);
+  blueDeck.cards = JSON.parse(gameData.blue_deck);
+  yellowDeck.cards = JSON.parse(gameData.yellow_deck);
+  greenDeck.cards = JSON.parse(gameData.green_deck);
+  p1Data = JSON.parse(gameData.player_1);
+  p2Data = JSON.parse(gameData.player_2);
+  p3Data = JSON.parse(gameData.player_3);
+  p4Data = JSON.parse(gameData.player_4);
+  allPlayers = { p1Data, p2Data, p3Data, p4Data };
+  dealNobles();
+  dealGems();
+  dealCards();
+  setTable();
+});
+
+// TODO: update player, including dropdown divs
+socket.on("new-row-result", (newData) => {
+  let previousPlayer = inTurnPlayer;
+  let previousPosition = playerOrder.indexOf(previousPlayer);
+  gameData = newData;
+  numberOfPlayers = gameData.players;
+  pData = gameData[`player_${activePlayer}`];
+  boardGems = gameData.board_gems;
+  inTurnPlayer = parseInt(gameData.save_id.toString().slice(-1));
+  noblesDeck.nobles = gameData.nobles;
+  blueDeck.cards = gameData.blue_deck;
+  yellowDeck.cards = gameData.yellow_deck;
+  greenDeck.cards = gameData.green_deck;
+  p1Data = gameData.player_1;
+  p2Data = gameData.player_2;
+  p3Data = gameData.player_3;
+  p4Data = gameData.player_4;
+  allPlayers = { p1Data, p2Data, p3Data, p4Data };
+
+  // Clear outlined player container, and move to next player
+  document.getElementById("in-turn-player").removeAttribute("id");
+  let playerDiv = document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)];
+  playerDiv.id = "in-turn-player";
+  dealNobles();
+  dealGems();
+  dealCards();
+  updatePlayer(previousPlayer, previousPosition);
+});
 
 function dealNobles() {
-  noblesDeck.nobles = JSON.parse(gameData.nobles);
   // Recreate the nobles row 1 img at a time (over-writing the HTML for the whole div)
   let noblesContainer = document.getElementsByClassName("nobles-row")[0];
   let newDivContents = `<img src="images\\nobles\\nobles-${noblesDeck.nobles[0].nobleId}.jpg" />`;
@@ -110,9 +152,6 @@ function dealGems() {
   }
 }
 function dealCards() {
-  blueDeck.cards = JSON.parse(gameData.blue_deck);
-  yellowDeck.cards = JSON.parse(gameData.yellow_deck);
-  greenDeck.cards = JSON.parse(gameData.green_deck);
   for (var i = 0; i < 4; i++) {
     document.getElementById(`board-blue-${i + 1}`).src = `images/cards/blue-${blueDeck.cards[i].cardId}.jpg`;
     document.getElementById(`board-yellow-${i + 1}`).src = `images/cards/yellow-${yellowDeck.cards[i].cardId}.jpg`;
@@ -121,83 +160,84 @@ function dealCards() {
   deckCounter();
 }
 
-// Make note: player divs will be populated by turn order starting with the active player at the top
-function setPlayers() {
-  inTurnPlayer = parseInt(gameData.save_id.toString().slice(-1));
-  document.getElementsByClassName("turn-marker")[0].innerText = `${JSON.parse(gameData[`player_${inTurnPlayer}`]).name}'s Turn`;
-  document.getElementById("in-turn-player").removeAttribute("id"); // To clear outlined player container
-  // playerOrder = [0, 1, 2, 3, 4, 1, 2, 3]; // Just for purposes of populating player divs.
+function setTable() {
+  // Anything that should only run once upon loading the page should go here.
   playerOrder = playerOrder.filter((x) => x <= numberOfPlayers); // remove any numbers higher than numberOfPlayers
   playerOrder = playerOrder.slice(activePlayer, activePlayer + numberOfPlayers);
+  document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)].id = "in-turn-player";
+  document.getElementById("turn-marker").innerText = `${JSON.parse(gameData[`player_${inTurnPlayer}`]).name}'s Turn`;
   // First delete the extra player divs (I think easier than starting with 2)
   for (var i = 4; i > numberOfPlayers; i--) {
     document.getElementsByClassName("player-container")[i - 1].remove();
   }
-  // Re-Class divs and populate game data
+  // Player divs will be populated by turn order starting with the active player at the top
   for (var i = 0; i < numberOfPlayers; i++) {
     let currentPlayerNum = playerOrder[i];
+    updatePlayer(currentPlayerNum, i);
     let playerDiv = document.getElementsByClassName("player-container")[i];
-    if (playerOrder[i] == inTurnPlayer) {
-      // Outline first player's box to indicate who has first turn
-      playerDiv.id = "in-turn-player";
-    }
-    let playerName = JSON.parse(gameData[`player_${currentPlayerNum}`]).name;
-    playerDiv.getElementsByClassName("player-name")[0].innerText = playerName;
-    let playerGems = JSON.parse(gameData[`player_${currentPlayerNum}`]).gems;
-    let playerBonus = JSON.parse(gameData[`player_${currentPlayerNum}`]).bonus;
-    let playerScore = JSON.parse(gameData[`player_${currentPlayerNum}`]).points;
-    playerDiv.getElementsByClassName("player-score")[0].innerText = `Score: ${playerScore}`;
-    let playerGoldCount = JSON.parse(gameData[`player_${currentPlayerNum}`]).gems.gold;
-    // Add gold gem images if present
-    let goldGemContainer = playerDiv.getElementsByClassName("player-gold-gem")[0];
-    for (let j = 0; j < playerGoldCount; j++) {
-      let newDivContents = `<img src="images/gems/goldGem.jpg" />`;
-      goldGemContainer.innerHTML += newDivContents;
-    }
-    for (let j = 0; j < 5; j++) {
-      // Cycle through each gem color other than gold
-      playerDiv.getElementsByClassName("player-gem-count")[j].innerText = playerGems[gemOrder[j + 1]]; //gold is first, so it is just skipped
-      playerDiv.getElementsByClassName("player-bonus")[j].innerText = `(${playerBonus[gemOrder[j + 1]]})`;
-    }
-    // Populate reserved/purchased cards if present
-    let dropDownContainer = playerDiv.getElementsByClassName("player-drop-down")[0];
-    let reservedCards = JSON.parse(gameData[`player_${currentPlayerNum}`]).reserved_cards;
-    let reserveCount = reservedCards.length;
-    if (reserveCount > 0) {
-      let newElement = document.createElement("details");
-      newElement.classList.add("player-details");
-      newElement.setAttribute("open", true);
-      let newElementContents = `
-        <summary>Reserved Cards</summary>
-        <div class="reserved-card-container">
-        </div>`;
-      newElement.innerHTML = newElementContents;
-      dropDownContainer.insertBefore(newElement, dropDownContainer.firstChild);
-      let reserveContainer = playerDiv.getElementsByClassName("reserved-card-container")[0];
-      for (let j = 0; j < reserveCount; j++) {
-        reserveContainer.innerHTML += `<img src="images/cards/${reservedCards[j].deck}-${reservedCards[j].cardId}.jpg" />`;
-      }
-    }
-    let purchasedCards = JSON.parse(gameData[`player_${currentPlayerNum}`]).purchased_cards;
-    let purchaseCount = purchasedCards.length;
-    if (purchaseCount > 0) {
-      let newElement = document.createElement("details");
-      newElement.classList.add("player-details");
-      let newElementContents = `
-        <summary>Purchased Cards</summary>
-        <div class="purchased-card-container">
-        </div>`;
-      newElement.innerHTML = newElementContents;
-      dropDownContainer.append(newElement);
-      let purchaseContainer = playerDiv.getElementsByClassName("purchased-card-container")[0];
-      for (let j = 0; j < purchaseCount; j++) {
-        purchaseContainer.innerHTML += `<img src="images/cards/${purchasedCards[j].deck}-${purchasedCards[j].cardId}.jpg" />`;
-      }
-    }
-    playerDiv.classList.replace(`player-${i + 1}`, `player-${currentPlayerNum}`);
+    playerDiv.classList.replace(`player-${i + 1}`, `player-${playerOrder[i]}`);
   }
-  console.log(`Active Player: ${JSON.parse(gameData[`player_${activePlayer}`]).name}`);
+  console.log(`Active Player: ${pData.name}`);
   resetEventListeners();
+}
+
+function updatePlayer(player, playerPosition) {
+  console.log("player: " + player + ",  position: " + playerPosition);
+  let playerDiv = document.getElementsByClassName("player-container")[playerPosition];
+  let playerData = allPlayers[`p${player}Data`];
+  let playerName = playerData.name;
+  playerDiv.getElementsByClassName("player-name")[0].innerText = playerName;
+  let playerScore = playerData.points;
+  playerDiv.getElementsByClassName("player-score")[0].innerText = `Score: ${playerScore}`;
+  let playerGems = playerData.gems;
+  let playerBonus = playerData.bonus;
+  let playerGoldCount = playerGems.gold;
+  let goldGemContainer = playerDiv.getElementsByClassName("player-gold-gem")[0];
+  // Add gold gem images if present
+  for (let j = 0; j < playerGoldCount; j++) {
+    let newDivContents = `<img src="images/gems/goldGem.jpg" />`;
+    goldGemContainer.innerHTML += newDivContents;
+  }
+  for (let j = 0; j < 5; j++) {
+    // Cycle through each gem color other than gold
+    playerDiv.getElementsByClassName("player-gem-count")[j].innerText = playerGems[gemOrder[j + 1]]; //gold is first, so it is just skipped
+    playerDiv.getElementsByClassName("player-bonus")[j].innerText = `(${playerBonus[gemOrder[j + 1]]})`;
+  }
+  // Populate reserved/purchased cards if present
+  let dropDownContainer = playerDiv.getElementsByClassName("player-drop-down")[0];
+  let reservedCards = playerData.reserved_cards;
+  let reserveCount = reservedCards.length;
+  if (reserveCount > 0) {
+    let newElement = document.createElement("details");
+    newElement.classList.add("player-details");
+    newElement.setAttribute("open", true);
+    let newElementContents = `
+      <summary>Reserved Cards</summary>
+      <div class="reserved-card-container">
+      </div>`;
+    newElement.innerHTML = newElementContents;
+    dropDownContainer.insertBefore(newElement, dropDownContainer.firstChild);
+    let reserveContainer = playerDiv.getElementsByClassName("reserved-card-container")[0];
+    for (let j = 0; j < reserveCount; j++) {
+      reserveContainer.innerHTML += `<img src="images/cards/${reservedCards[j].deck}-${reservedCards[j].cardId}.jpg" />`;
+    }
+  }
+  let purchasedCards = playerData.purchased_cards;
+  let purchaseCount = purchasedCards.length;
+  if (purchaseCount > 0) {
+    let newElement = document.createElement("details");
+    newElement.classList.add("player-details");
+    let newElementContents = `
+      <summary>Purchased Cards</summary>
+      <div class="purchased-card-container">
+      </div>`;
+    newElement.innerHTML = newElementContents;
+    dropDownContainer.append(newElement);
+    let purchaseContainer = playerDiv.getElementsByClassName("purchased-card-container")[0];
+    for (let j = 0; j < purchaseCount; j++) {
+      purchaseContainer.innerHTML += `<img src="images/cards/${purchasedCards[j].deck}-${purchasedCards[j].cardId}.jpg" />`;
+    }
+  }
 }
 
 function deckCounter() {
@@ -281,7 +321,7 @@ function boardCardClickHandler(event) {
   deckCounter();
 }
 
-// TODO: Enforce 10 gem max, don't forget golds - Do this in the end turn function, not here
+// TODO: enforce no duplicates if starting stack wasn't 4+
 function boardGemClickHandler(event) {
   if (actionStarted != "none" && actionStarted != "gem") {
     alert(
@@ -459,10 +499,6 @@ function claimNobleHandler() {
 }
 
 function getPData() {
-  p1Data = JSON.parse(gameData.player_1);
-  p2Data = JSON.parse(gameData.player_2);
-  p3Data = JSON.parse(gameData.player_3);
-  p4Data = JSON.parse(gameData.player_4);
   if (activePlayer == 1) {
     p1Data = pData;
   }
@@ -477,16 +513,18 @@ function getPData() {
   }
 }
 
+// TODO: Enforce 10 gem max, don't forget golds
 function endTurnHandler() {
   if (activePlayer != inTurnPlayer) {
     return;
   }
+  // Enforce 10 gem max
   totalPlayerGems = 0;
   for (var i in pData.gems) {
     totalPlayerGems += pData.gems[i];
   }
-  console.log(totalPlayerGems);
-  let round = parseInt(gameData.save_id.toString().slice(0, 1));
+  console.log("total player gems: " + totalPlayerGems);
+  let round = parseInt(gameData.save_id.toString().slice(0, -2));
   if (inTurnPlayer == numberOfPlayers) {
     round += 1;
     inTurnPlayer = 1;
@@ -495,16 +533,15 @@ function endTurnHandler() {
   }
 
   getPData();
-  var xhr = new XMLHttpRequest();
   var body = {
-    gameId: gameId,
+    game_id: gameId,
     players: numberOfPlayers,
-    saveId: `${round}.${inTurnPlayer}`,
+    save_id: `${round}.${inTurnPlayer}`,
     nobles: noblesDeck.nobles,
-    blueDeck: blueDeck.cards,
-    yellowDeck: yellowDeck.cards,
-    greenDeck: greenDeck.cards,
-    boardGems: {
+    blue_deck: blueDeck.cards,
+    yellow_deck: yellowDeck.cards,
+    green_deck: greenDeck.cards,
+    board_gems: {
       gold: boardGems.gold,
       black: boardGems.black,
       red: boardGems.red,
@@ -512,16 +549,18 @@ function endTurnHandler() {
       blue: boardGems.blue,
       white: boardGems.white,
     },
-    p1: p1Data,
-    p2: p2Data,
-    p3: p3Data,
-    p4: p4Data,
+    player_1: p1Data,
+    player_2: p2Data,
+    player_3: p3Data,
+    player_4: p4Data,
   };
-  xhr.open("POST", "/api/db/newRow");
-  xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-  xhr.send(JSON.stringify(body));
+  socket.emit("new-row", body);
+  actionIndex = 1;
+  actionStarted = "none";
+  takenGemColor = [];
   // Clear outlined player container, and move to next player
   document.getElementById("in-turn-player").removeAttribute("id");
   let playerDiv = document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)];
   playerDiv.id = "in-turn-player";
+  dealCards();
 }
