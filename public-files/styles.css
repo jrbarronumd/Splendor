@@ -298,6 +298,17 @@ h1 {
   width: min-content;
 }
 
+#player-header {
+  display: grid;
+  width: 100%;
+  justify-content: center;
+  grid-template-columns: 1fr auto;
+}
+
+#round-counter {
+  justify-content: flex-end;
+}
+
 .main-player-container,
 .player-container {
   border-radius: calc(var(--block-size) / 10);

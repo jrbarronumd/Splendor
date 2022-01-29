@@ -2,10 +2,10 @@ import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
 // TODO: Turn player gem count text red (or some other color) when totalPlayerGems > 10
+// The 10 gem max and returning gems should be stress tested.  Make sure players can't cheat or be cheated with what they can/can't return
 // Also make it obvious when someone eclipses 15 points
 // Need a game log
 // Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
-// Add round counter along with turn marker on top of page
 const socket = io();
 var numberOfPlayers, gameData, pData, boardGems, totalPlayerGems, p1Data, p2Data, p3Data, p4Data;
 var takenGemColor = [];
@@ -106,11 +106,12 @@ socket.once("game-data", (respData) => {
   setTable();
 });
 
-// TODO: update player, including dropdown divs
+// This will be executed every time another player finishes a turn
 socket.on("new-row-result", (newData) => {
   let previousPlayer = inTurnPlayer;
   let previousPosition = playerOrder.indexOf(previousPlayer);
   gameData = newData;
+  let round = parseInt(gameData.save_id.toString().slice(0, -2));
   numberOfPlayers = gameData.players;
   pData = gameData[`player_${activePlayer}`];
   boardGems = gameData.board_gems;
@@ -126,6 +127,7 @@ socket.on("new-row-result", (newData) => {
   allPlayers = { p1Data, p2Data, p3Data, p4Data };
 
   // Clear outlined player container, and move to next player
+  document.getElementById("round-counter").innerText = `Round: ${round}`;
   document.getElementById("in-turn-player").removeAttribute("id");
   let playerDiv = document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)];
   playerDiv.id = "in-turn-player";
@@ -166,6 +168,8 @@ function setTable() {
   playerOrder = playerOrder.slice(activePlayer, activePlayer + numberOfPlayers);
   document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)].id = "in-turn-player";
   document.getElementById("turn-marker").innerText = `${JSON.parse(gameData[`player_${inTurnPlayer}`]).name}'s Turn`;
+  let round = parseInt(gameData.save_id.toString().slice(0, -2));
+  document.getElementById("round-counter").innerText = `Round: ${round}`;
   // First delete the extra player divs (I think easier than starting with 2)
   for (var i = 4; i > numberOfPlayers; i--) {
     document.getElementsByClassName("player-container")[i - 1].remove();
@@ -182,7 +186,6 @@ function setTable() {
 }
 
 function updatePlayer(player, playerPosition) {
-  console.log("player: " + player + ",  position: " + playerPosition);
   let playerDiv = document.getElementsByClassName("player-container")[playerPosition];
   let playerData = allPlayers[`p${player}Data`];
   let playerName = playerData.name;
@@ -193,8 +196,9 @@ function updatePlayer(player, playerPosition) {
   let playerBonus = playerData.bonus;
   let playerGoldCount = playerGems.gold;
   let goldGemContainer = playerDiv.getElementsByClassName("player-gold-gem")[0];
-  // Add gold gem images if present
-  for (let j = 0; j < playerGoldCount; j++) {
+  // Add gold gem images if necessary
+  let newGolds = playerGoldCount - goldGemContainer.getElementsByTagName("img").length;
+  for (let j = 0; j < newGolds; j++) {
     let newDivContents = `<img src="images/gems/goldGem.jpg" />`;
     goldGemContainer.innerHTML += newDivContents;
   }
@@ -208,33 +212,52 @@ function updatePlayer(player, playerPosition) {
   let reservedCards = playerData.reserved_cards;
   let reserveCount = reservedCards.length;
   if (reserveCount > 0) {
-    let newElement = document.createElement("details");
-    newElement.classList.add("player-details");
-    newElement.setAttribute("open", true);
-    let newElementContents = `
-      <summary>Reserved Cards</summary>
-      <div class="reserved-card-container">
-      </div>`;
-    newElement.innerHTML = newElementContents;
-    dropDownContainer.insertBefore(newElement, dropDownContainer.firstChild);
     let reserveContainer = playerDiv.getElementsByClassName("reserved-card-container")[0];
-    for (let j = 0; j < reserveCount; j++) {
+    var newReserved = 0;
+    let existingReserved = 0;
+    if (reserveContainer) {
+      existingReserved = reserveContainer.getElementsByTagName("img").length;
+      newReserved = reserveCount - existingReserved;
+    } else {
+      newReserved = reserveCount;
+      let newElement = document.createElement("details");
+      newElement.classList.add("player-details");
+      newElement.setAttribute("open", true);
+      let newElementContents = `
+        <summary>Reserved Cards</summary>
+        <div class="reserved-card-container">
+        </div>`;
+      newElement.innerHTML = newElementContents;
+      dropDownContainer.insertBefore(newElement, dropDownContainer.firstChild);
+    }
+    reserveContainer = playerDiv.getElementsByClassName("reserved-card-container")[0];
+    for (let j = existingReserved; j < reserveCount; j++) {
       reserveContainer.innerHTML += `<img src="images/cards/${reservedCards[j].deck}-${reservedCards[j].cardId}.jpg" />`;
     }
   }
+
   let purchasedCards = playerData.purchased_cards;
   let purchaseCount = purchasedCards.length;
   if (purchaseCount > 0) {
-    let newElement = document.createElement("details");
-    newElement.classList.add("player-details");
-    let newElementContents = `
+    let purchaseContainer = dropDownContainer.getElementsByClassName("purchased-card-container")[0];
+    var newPurchased = 0;
+    let existingPurchased = 0;
+    if (purchaseContainer) {
+      existingPurchased = purchaseContainer.getElementsByTagName("img").length;
+      newPurchased = purchaseCount + existingPurchased;
+    } else {
+      newPurchased = purchaseCount;
+      let newElement = document.createElement("details");
+      newElement.classList.add("player-details");
+      let newElementContents = `
       <summary>Purchased Cards</summary>
       <div class="purchased-card-container">
       </div>`;
-    newElement.innerHTML = newElementContents;
-    dropDownContainer.append(newElement);
-    let purchaseContainer = playerDiv.getElementsByClassName("purchased-card-container")[0];
-    for (let j = 0; j < purchaseCount; j++) {
+      newElement.innerHTML = newElementContents;
+      dropDownContainer.append(newElement);
+    }
+    purchaseContainer = playerDiv.getElementsByClassName("purchased-card-container")[0];
+    for (let j = existingPurchased; j < purchaseCount; j++) {
       purchaseContainer.innerHTML += `<img src="images/cards/${purchasedCards[j].deck}-${purchasedCards[j].cardId}.jpg" />`;
     }
   }
@@ -321,7 +344,6 @@ function boardCardClickHandler(event) {
   deckCounter();
 }
 
-// TODO: enforce no duplicates if starting stack wasn't 4+
 function boardGemClickHandler(event) {
   if (actionStarted != "none" && actionStarted != "gem") {
     alert(
@@ -351,7 +373,10 @@ function boardGemClickHandler(event) {
     if (duplicate === gemColor) {
       // If the clicked color has already been clicked in this turn
       if (takenGemColor.length > 1) {
-        alert("you've already taken 2 gems. You can't take a duplicate at this time.");
+        alert("You've already taken 2 gems. You can't take a duplicate at this time.");
+        return;
+      } else if (boardCount < 3) {
+        alert("You cannot take 2 gems of the same color unless there were 4 in stack at the start of your turn.");
         return;
       } else if (takenGemColor.length == 1) {
         actionIndex = 0; // If legally taking 2 of 1 color, disable further actions
@@ -513,7 +538,6 @@ function getPData() {
   }
 }
 
-// TODO: Enforce 10 gem max, don't forget golds
 function endTurnHandler() {
   if (activePlayer != inTurnPlayer) {
     return;
@@ -523,7 +547,14 @@ function endTurnHandler() {
   for (var i in pData.gems) {
     totalPlayerGems += pData.gems[i];
   }
-  console.log("total player gems: " + totalPlayerGems);
+  if (totalPlayerGems > 10) {
+    alert(`You currently have ${totalPlayerGems} gems. You may not have more than 10, including Gold gems.
+    
+Please return ${totalPlayerGems - 10} gem(s) by clicking on the image of the gem you want to return under your name.
+    
+Gold gems can only be returned if if you took them this turn by clicking the "Reset Turn" button.`);
+    return;
+  }
   let round = parseInt(gameData.save_id.toString().slice(0, -2));
   if (inTurnPlayer == numberOfPlayers) {
     round += 1;
@@ -560,6 +591,7 @@ function endTurnHandler() {
   takenGemColor = [];
   // Clear outlined player container, and move to next player
   document.getElementById("in-turn-player").removeAttribute("id");
+  document.getElementById("round-counter").innerText = `Round: ${round}`;
   let playerDiv = document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)];
   playerDiv.id = "in-turn-player";
   dealCards();
