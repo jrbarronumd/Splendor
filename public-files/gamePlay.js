@@ -5,6 +5,7 @@ import CardsDeck from "./decks/cardDeck.js";
 // The 10 gem max and returning gems should be stress tested.  Make sure players can't cheat or be cheated with what they can/can't return
 // Also make it obvious when someone eclipses 15 points
 // Need a game log
+// Reset Turn button should not actually reload the page.
 // Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
 const socket = io();
 var numberOfPlayers, gameData, pData, boardGems, totalPlayerGems, p1Data, p2Data, p3Data, p4Data;
@@ -126,8 +127,9 @@ socket.on("new-row-result", (newData) => {
   p4Data = gameData.player_4;
   allPlayers = { p1Data, p2Data, p3Data, p4Data };
 
-  // Clear outlined player container, and move to next player
+  document.getElementById("turn-marker").innerText = `${gameData[`player_${inTurnPlayer}`].name}'s Turn`;
   document.getElementById("round-counter").innerText = `Round: ${round}`;
+  // Clear outlined player container, and move to next player
   document.getElementById("in-turn-player").removeAttribute("id");
   let playerDiv = document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)];
   playerDiv.id = "in-turn-player";
@@ -591,8 +593,9 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   takenGemColor = [];
   // Clear outlined player container, and move to next player
   document.getElementById("in-turn-player").removeAttribute("id");
-  document.getElementById("round-counter").innerText = `Round: ${round}`;
   let playerDiv = document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)];
   playerDiv.id = "in-turn-player";
+  document.getElementById("turn-marker").innerText = `${body[`player_${inTurnPlayer}`].name}'s Turn`;
+  document.getElementById("round-counter").innerText = `Round: ${round}`;
   dealCards();
 }
