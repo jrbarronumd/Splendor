@@ -135,6 +135,7 @@ var blankPlayer = {
   },
   reserved_cards: [],
   purchased_cards: [],
+  nobles: [],
 };
 
 function createGame(event) {
