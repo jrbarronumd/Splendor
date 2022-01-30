@@ -1,3 +1,5 @@
+// TODO: Redirect users to new game page or saved games or home if trying to load a game that doesn't exist.
+
 const socket = require("socket.io");
 const express = require("express");
 const path = require("path");
@@ -7,11 +9,6 @@ const app = express();
 const server = http.createServer(app);
 const io = socket(server);
 const dbOperations = require("./db/dbOperations.js");
-
-// Delete these lines if not necessary - they were used before socket.io implementation. Shouldn't be needed anymore.
-// var bodyParser = require("body-parser");
-// app.use(bodyParser.urlencoded({ extended: false }));
-// app.use(bodyParser.json());
 
 dbOperations.createGamesTable();
 
