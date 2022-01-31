@@ -1,4 +1,6 @@
 // TODO: Redirect users to new game page or saved games or home if trying to load a game that doesn't exist.
+// TODO: Server will crash if users are connected and trying to retrieve data on startup IF the db/table doesn't exist yet.
+//       They will crash because the players are requesting data when it is still in the process of being created.
 
 const socket = require("socket.io");
 const express = require("express");

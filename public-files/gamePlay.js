@@ -14,7 +14,7 @@ import CardsDeck from "./decks/cardDeck.js";
 // Need some way to indicate when an action is partially underway (reserving a card after taking gold gem, buying reserved card, claiming noble...)
 // TODO: Need to handle when the deck is running out of cards!!
 const socket = io();
-var numberOfPlayers, gameData, pData, boardGems, totalPlayerGems, p1Data, p2Data, p3Data, p4Data;
+var numberOfPlayers, gameData, pData, gameOptions, boardGems, totalPlayerGems, p1Data, p2Data, p3Data, p4Data;
 var takenGemColor = [];
 var allPlayers = {};
 var playerOrder = [0, 1, 2, 3, 4, 1, 2, 3];
@@ -108,6 +108,7 @@ socket.once("game-data", (respData) => {
   pData = JSON.parse(gameData[`player_${activePlayer}`]);
   boardGems = JSON.parse(gameData.board_gems);
   inTurnPlayer = parseInt(gameData.save_id.toString().slice(-1));
+  gameOptions = JSON.parse(gameData.game_options);
   noblesDeck.nobles = JSON.parse(gameData.nobles);
   blueDeck.cards = JSON.parse(gameData.blue_deck);
   yellowDeck.cards = JSON.parse(gameData.yellow_deck);
@@ -133,6 +134,7 @@ socket.on("new-row-result", (newData) => {
   pData = gameData[`player_${activePlayer}`];
   boardGems = gameData.board_gems;
   inTurnPlayer = parseInt(gameData.save_id.toString().slice(-1));
+  gameOptions = gameData.game_options;
   noblesDeck.nobles = gameData.nobles;
   blueDeck.cards = gameData.blue_deck;
   yellowDeck.cards = gameData.yellow_deck;
@@ -742,6 +744,7 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
     game_id: gameId,
     players: numberOfPlayers,
     save_id: `${round}.${inTurnPlayer}`,
+    game_options: gameOptions,
     nobles: noblesDeck.nobles,
     blue_deck: blueDeck.cards,
     yellow_deck: yellowDeck.cards,

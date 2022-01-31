@@ -177,6 +177,7 @@ function createGame(event) {
     game_id: gameId,
     players: numberOfPlayers,
     save_id: "1.1",
+    game_options: {},
     nobles: noblesDeck.nobles,
     blue_deck: blueDeck.cards,
     yellow_deck: yellowDeck.cards,

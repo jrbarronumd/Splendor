@@ -8,6 +8,7 @@ async function createGamesTable() {
         table.text("game_id");
         table.real("save_id");
         table.integer("players");
+        table.text("game_options");
         table.text("nobles");
         table.text("blue_deck");
         table.text("yellow_deck");
