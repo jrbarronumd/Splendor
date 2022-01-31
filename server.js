@@ -28,7 +28,6 @@ io.on("connection", (socket) => {
   // Used to verify a unique game name was entered
   socket.on("check-name", async (gameId, callback) => {
     const result = await dbOperations.checkForGameId(gameId);
-    // socket.emit("name-checked", result);
     callback(result);
   });
 
@@ -36,7 +35,6 @@ io.on("connection", (socket) => {
     socket.join(gameId);
     console.log(`User ${socket.id} joined game ID: ${gameId} as player ${playerNum}`);
     let result = await dbOperations.getGame(gameId);
-    let rows = result.length;
     socket.emit("game-data", result[0]);
   });
 

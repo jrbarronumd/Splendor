@@ -10,6 +10,8 @@ import CardsDeck from "./decks/cardDeck.js";
 // Delete games from db when complete, or at least all but one row.
 // Can't return a gem if you take a gold gem and have more than 10 total...
 // What happens when someone wins?!?
+// create a purchaseCard function to avoid duplicate code in buy reserved and buy from board.
+// Need some way to indicate when an action is partially underway (reserving a card after taking gold gem, buying reserved card, claiming noble...)
 // TODO: Need to handle when the deck is running out of cards!!
 const socket = io();
 var numberOfPlayers, gameData, pData, boardGems, totalPlayerGems, p1Data, p2Data, p3Data, p4Data;
@@ -59,6 +61,14 @@ function resetEventListeners() {
     const button = mainPlayerContainer.getElementsByClassName("gem-img")[i];
     button.addEventListener("click", playerGemClickHandler);
   }
+  for (var i = 0; i < noblesDeck.nobles.length; i++) {
+    const button = gameBoardNobles.children[i];
+    button.removeEventListener("click", selectNoble);
+  }
+  for (var i = 0; i < pData.reserved_cards.length; i++) {
+    const button = mainPlayerContainer.getElementsByClassName("reserved-card-container")[0].children[i];
+    button.removeEventListener("click", selectReserved);
+  }
 }
 function removeEventListeners() {
   endTurnButton.removeEventListener("click", endTurnHandler);
@@ -76,10 +86,6 @@ function removeEventListeners() {
   for (var i = 0; i < 5; i++) {
     const button = mainPlayerContainer.getElementsByClassName("gem-img")[i];
     button.removeEventListener("click", playerGemClickHandler);
-  }
-  for (var i = 0; i < noblesDeck.nobles.length; i++) {
-    const button = gameBoardNobles.children[i];
-    button.removeEventListener("click", selectNoble);
   }
 }
 
@@ -227,8 +233,8 @@ function updatePlayer(player, playerPosition) {
     let newDivContents = `<img src="images/gems/goldGem.jpg" />`;
     goldGemContainer.innerHTML += newDivContents;
   }
+  // Populate player gems/bonus counts
   for (let j = 1; j <= 5; j++) {
-    // Cycle through each gem color other than gold
     playerDiv.getElementsByClassName("player-gem-count")[j - 1].innerText = playerGems[gemOrder[j]]; //gold is first, so it is just skipped
     playerDiv.getElementsByClassName("player-bonus")[j - 1].innerText = `(${playerBonus[gemOrder[j]]})`;
   }
@@ -242,6 +248,7 @@ function updatePlayer(player, playerPosition) {
     if (reserveContainer) {
       existingReserved = reserveContainer.getElementsByTagName("img").length;
     } else {
+      // Create Dropdown if not exists
       let newElement = document.createElement("details");
       newElement.classList.add("player-details");
       newElement.setAttribute("open", true);
@@ -253,8 +260,32 @@ function updatePlayer(player, playerPosition) {
       dropDownContainer.insertBefore(newElement, dropDownContainer.firstChild);
     }
     reserveContainer = playerDiv.getElementsByClassName("reserved-card-container")[0];
-    for (let j = existingReserved; j < reserveCount; j++) {
-      reserveContainer.innerHTML += `<img src="images/cards/${reservedCards[j].deck}-${reservedCards[j].cardId}.jpg" />`;
+    // If adding cards to dropdown
+    if (reserveCount > existingReserved) {
+      for (let j = existingReserved; j < reserveCount; j++) {
+        reserveContainer.innerHTML += `<img src="images/cards/${reservedCards[j].deck}-${reservedCards[j].cardId}.jpg" />`;
+      }
+    } // If removing card from dropdown
+    else if (reserveCount < existingReserved) {
+      for (let j = 0; j < existingReserved; j++) {
+        // Delete img if img ID doesn't match any reserved card
+        let imgId = reserveContainer.getElementsByTagName("img")[j].src.slice(-6, -4);
+        let idFound = 0;
+        playerData.reserved_cards.forEach((card) => {
+          if (card.cardId == imgId) {
+            idFound = 1;
+          }
+        });
+        if (idFound == 0) {
+          reserveContainer.getElementsByTagName("img")[j].remove();
+        }
+      }
+    }
+  } else {
+    // This will run if a player just bought their last reserved card
+    let reserveContainer = playerDiv.getElementsByClassName("reserved-card-container")[0];
+    if (reserveContainer) {
+      reserveContainer.parentElement.remove();
     }
   }
 
@@ -319,7 +350,6 @@ function boardCardClickHandler(event) {
   // Validate purchase
   let surplus = pData.gems.gold;
   for (let i = 1; i <= 5; i++) {
-    // Create purchase power array of gems + bonuses, not including gold gems
     let purchasePower = pData.gems[gemOrder[i]] + pData.bonus[gemOrder[i]];
     surplus += Math.min(0, purchasePower - purchasedCard[gemOrder[i]]);
     // Remaining surplus is remaining gold. Negative number means the player can't afford it.
@@ -542,13 +572,94 @@ function buyReservedHandler() {
   if (activePlayer != inTurnPlayer) {
     return;
   }
-  console.log("buy reserved");
+  if (actionIndex == 0) {
+    alert(`You have already completed your turn. Please click "End Turn" or "Reset Turn" button`);
+    return;
+  }
+  if (actionStarted != "none") {
+    alert(
+      `You have already started completing a "${actionStarted}" action. Please complete that action and end your turn, or click "Reset Turn" button`
+    );
+    return;
+  }
+  console.log("Buying reserved card");
+  removeEventListeners();
+  for (var i = 0; i < pData.reserved_cards.length; i++) {
+    const button = mainPlayerContainer.getElementsByClassName("reserved-card-container")[0].children[i];
+    button.addEventListener("click", selectReserved);
+  }
+}
+
+function selectReserved(event) {
+  let clickedCardImg = event.target;
+  let reservedIndex = Array.prototype.indexOf.call(clickedCardImg.parentElement.children, clickedCardImg);
+  let clickedCard = pData.reserved_cards[reservedIndex];
+  let deckColor = clickedCard.deck;
+  // Check if player can afford the card
+  let surplus = pData.gems.gold;
+  for (let i = 1; i <= 5; i++) {
+    let purchasePower = pData.gems[gemOrder[i]] + pData.bonus[gemOrder[i]];
+    surplus += Math.min(0, purchasePower - clickedCard[gemOrder[i]]);
+    // Remaining surplus is remaining gold. Negative number means the player can't afford it.
+    if (surplus < 0) {
+      alert("Nope");
+      return;
+    }
+  }
+  // Pay for card, and add spent gems to board
+  for (let i = 1; i <= 5; i++) {
+    let cost = Math.max(0, clickedCard[gemOrder[i]] - pData.bonus[gemOrder[i]]); // max function will handle if bonus is greater than total cost of a color
+    cost = Math.min(cost, pData.gems[gemOrder[i]]); // This will catch if golds are needed, so player gems don't go negative
+    pData.gems[gemOrder[i]] -= cost;
+    boardGems[gemOrder[i]] += cost;
+    mainPlayerContainer.getElementsByClassName("player-gem-count")[i - 1].innerText = pData.gems[gemOrder[i]];
+  }
+  // Resolve any spent gold gems in pData and on game table
+  for (var i = surplus; i < pData.gems.gold; i++) {
+    mainPlayerContainer.getElementsByClassName("player-gold-gem")[0].firstElementChild.remove();
+    boardGems.gold += 1;
+  }
+  pData.gems.gold = surplus;
+  dealGems(); // For board gem display
+  // Create dropdown if not present (relying on fact that if there are purchased cards, it was already created)
+  let dropDownContainer = mainPlayerContainer.getElementsByClassName("player-drop-down")[0];
+  if (pData.purchased_cards.length == 0) {
+    let newElement = document.createElement("details");
+    newElement.classList.add("player-details");
+    let newElementContents = `
+      <summary>Purchased Cards</summary>
+      <div class="purchased-card-container">
+      </div>`;
+    newElement.innerHTML = newElementContents;
+    dropDownContainer.append(newElement);
+  }
+  let purchaseContainer = mainPlayerContainer.getElementsByClassName("purchased-card-container")[0];
+  pData.reserved_cards.splice(reservedIndex, 1); // Remove card from player's reserved cards
+  pData.purchased_cards.push(clickedCard); // Add card to player's purchased cards
+  purchaseContainer.innerHTML += `<img src="images/cards/${deckColor}-${clickedCard.cardId}.jpg" />`;
+  pData.points += clickedCard.points;
+  let playerScoreContainer = mainPlayerContainer.getElementsByClassName("player-score")[0];
+  playerScoreContainer.innerText = `Score: ${pData.points}`;
+  pData.bonus[clickedCard.color] += 1;
+  let bonusGemContainer = mainPlayerContainer.getElementsByClassName("player-gem-container")[gemOrder.indexOf(clickedCard.color) - 1];
+  bonusGemContainer.getElementsByClassName("player-bonus")[0].innerText = `(${pData.bonus[clickedCard.color]})`;
+  event.target.remove();
+  if (pData.reserved_cards.length == 0) {
+    // Remove the whole dropdown if not needed anymore
+    let reserveContainer = mainPlayerContainer.getElementsByClassName("reserved-card-container")[0].parentElement;
+    reserveContainer.remove();
+  }
+  actionStarted = "buy reserved";
+  actionIndex = 0;
+  resetEventListeners();
 }
 
 function claimNobleHandler() {
   if (activePlayer != inTurnPlayer) {
     return;
   }
+  console.log("Claiming a noble");
+
   if (nobleClaimed > 0) {
     alert(`You may only claim 1 noble per turn! If you wish to claim a different one, click "Reset Turn" button`);
     return;
@@ -570,6 +681,7 @@ function selectNoble(event) {
     let cost = claimedNoble[`${gemOrder[i]}Val`];
     let playerValue = pData.bonus[gemOrder[i]];
     if (cost > playerValue) {
+      alert("Nope");
       resetEventListeners();
       return;
     }
@@ -581,8 +693,6 @@ function selectNoble(event) {
   pData.points += 3;
   playerScoreContainer.innerText = `Score: ${pData.points}`;
   mainPlayerContainer.getElementsByClassName("player-noble")[0].innerHTML += `<img src="images\\nobles\\nobles-${claimedNoble.nobleId}.jpg" />`;
-  //socket message to other players to re-deal nobles and load the img and score??
-  //end turn button already pushed the deal nobles function...
   nobleClaimed = 1;
   resetEventListeners();
 }
