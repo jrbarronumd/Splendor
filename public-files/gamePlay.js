@@ -2,6 +2,7 @@ import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
 // TODO: Turn player gem count text red (or some other color) when totalPlayerGems > 10
+// Need to handle when the deck is running out of cards!!
 // The 10 gem max and returning gems should be stress tested.  Make sure players can't cheat or be cheated with what they can/can't return
 // Also make it obvious when someone eclipses 15 points
 // Need a game log
@@ -12,7 +13,11 @@ import CardsDeck from "./decks/cardDeck.js";
 // What happens when someone wins?!?
 // create a purchaseCard function to avoid duplicate code in buy reserved and buy from board.
 // Need some way to indicate when an action is partially underway (reserving a card after taking gold gem, buying reserved card, claiming noble...)
-// TODO: Need to handle when the deck is running out of cards!!
+// ^This can also be leveraged to confirm an action (outline a gem after it is clicked for example)
+// If user clicks reserve card without having any reserved cards - kill it with an alert
+// Add # of purchased cards/reserved cards to the summary text of the drop-downs
+// Add date and rounds to saved games
+// TODO: Make magnification-on-hover optional (need to build a menu...)
 const socket = io();
 var numberOfPlayers, gameData, pData, gameOptions, boardGems, totalPlayerGems, p1Data, p2Data, p3Data, p4Data;
 var takenGemColor = [];
@@ -338,7 +343,6 @@ function boardCardClickHandler(event) {
   let purchasedCard, newCard, activeDeck;
   let deckIndex = event.target.id.slice(-1) - 1; // Position of the card in the deck - NOT the card ID
   let deckColor = event.target.id.slice(6, -2);
-  let playerScoreContainer = mainPlayerContainer.getElementsByClassName("player-score")[0];
   if (deckColor == "blue") {
     activeDeck = blueDeck;
   }
@@ -349,6 +353,23 @@ function boardCardClickHandler(event) {
     activeDeck = greenDeck;
   }
   purchasedCard = activeDeck.cards[deckIndex];
+  let validate = buyCard(purchasedCard);
+  if (validate == 0) {
+    return; // Can't afford card. No alert message.
+  }
+  newCard = activeDeck.cards[4];
+  activeDeck.cards.splice(4, 1); // Remove next card from deck, so it can be placed in the hole left by the purchased card
+  activeDeck.cards.splice(deckIndex, 1, newCard);
+  event.target.src = `images/cards/${deckColor}-00.jpg`; // Replace purchased card with face-down card
+  // event.target.src = `images/cards/${deckColor}-${newCard.cardId}.jpg`; // For Troubleshooting only!
+  // Add the gained color bonus to the table and pData
+  actionStarted = "card";
+  actionIndex = 0;
+  deckCounter();
+}
+
+// Handle a card purchase from the board or player reserved cards
+function buyCard(purchasedCard) {
   // Validate purchase
   let surplus = pData.gems.gold;
   for (let i = 1; i <= 5; i++) {
@@ -356,7 +377,7 @@ function boardCardClickHandler(event) {
     surplus += Math.min(0, purchasePower - purchasedCard[gemOrder[i]]);
     // Remaining surplus is remaining gold. Negative number means the player can't afford it.
     if (surplus < 0) {
-      return; // Can't afford card. No alert message.
+      return 0;
     }
   }
   // Pay for card, and add spent gems to board
@@ -387,22 +408,15 @@ function boardCardClickHandler(event) {
     dropDownContainer.append(newElement);
   }
   let purchaseContainer = mainPlayerContainer.getElementsByClassName("purchased-card-container")[0];
-  newCard = activeDeck.cards[4];
-  activeDeck.cards.splice(4, 1); // Remove next card from deck, so it can be placed in the hole left by the purchased card
-  activeDeck.cards.splice(deckIndex, 1, newCard);
-  pData.purchased_cards.push(purchasedCard); // Add card to player's purchased cards
+  let deckColor = purchasedCard.deck;
   purchaseContainer.innerHTML += `<img src="images/cards/${deckColor}-${purchasedCard.cardId}.jpg" />`;
-  event.target.src = `images/cards/${deckColor}-00.jpg`; // Replace purchased card with face-down card
-  // event.target.src = `images/cards/${deckColor}-${newCard.cardId}.jpg`; // For Troubleshooting only!
+  pData.purchased_cards.push(purchasedCard); // Add card to player's purchased cards
   pData.points += purchasedCard.points;
+  let playerScoreContainer = mainPlayerContainer.getElementsByClassName("player-score")[0];
   playerScoreContainer.innerText = `Score: ${pData.points}`;
-  // Add the gained color bonus to the table and pData
   pData.bonus[purchasedCard.color] += 1;
   let bonusGemContainer = mainPlayerContainer.getElementsByClassName("player-gem-container")[gemOrder.indexOf(purchasedCard.color) - 1];
   bonusGemContainer.getElementsByClassName("player-bonus")[0].innerText = `(${pData.bonus[purchasedCard.color]})`;
-  actionStarted = "card";
-  actionIndex = 0;
-  deckCounter();
 }
 
 function boardGemClickHandler(event) {
@@ -596,55 +610,12 @@ function selectReserved(event) {
   let clickedCardImg = event.target;
   let reservedIndex = Array.prototype.indexOf.call(clickedCardImg.parentElement.children, clickedCardImg);
   let clickedCard = pData.reserved_cards[reservedIndex];
-  let deckColor = clickedCard.deck;
-  // Check if player can afford the card
-  let surplus = pData.gems.gold;
-  for (let i = 1; i <= 5; i++) {
-    let purchasePower = pData.gems[gemOrder[i]] + pData.bonus[gemOrder[i]];
-    surplus += Math.min(0, purchasePower - clickedCard[gemOrder[i]]);
-    // Remaining surplus is remaining gold. Negative number means the player can't afford it.
-    if (surplus < 0) {
-      alert("Nope");
-      return;
-    }
+  let validate = buyCard(clickedCard);
+  if (validate == 0) {
+    alert("Nope");
+    return; // Can't afford card.
   }
-  // Pay for card, and add spent gems to board
-  for (let i = 1; i <= 5; i++) {
-    let cost = Math.max(0, clickedCard[gemOrder[i]] - pData.bonus[gemOrder[i]]); // max function will handle if bonus is greater than total cost of a color
-    cost = Math.min(cost, pData.gems[gemOrder[i]]); // This will catch if golds are needed, so player gems don't go negative
-    pData.gems[gemOrder[i]] -= cost;
-    boardGems[gemOrder[i]] += cost;
-    mainPlayerContainer.getElementsByClassName("player-gem-count")[i - 1].innerText = pData.gems[gemOrder[i]];
-  }
-  // Resolve any spent gold gems in pData and on game table
-  for (var i = surplus; i < pData.gems.gold; i++) {
-    mainPlayerContainer.getElementsByClassName("player-gold-gem")[0].firstElementChild.remove();
-    boardGems.gold += 1;
-  }
-  pData.gems.gold = surplus;
-  dealGems(); // For board gem display
-  // Create dropdown if not present (relying on fact that if there are purchased cards, it was already created)
-  let dropDownContainer = mainPlayerContainer.getElementsByClassName("player-drop-down")[0];
-  if (pData.purchased_cards.length == 0) {
-    let newElement = document.createElement("details");
-    newElement.classList.add("player-details");
-    let newElementContents = `
-      <summary>Purchased Cards</summary>
-      <div class="purchased-card-container">
-      </div>`;
-    newElement.innerHTML = newElementContents;
-    dropDownContainer.append(newElement);
-  }
-  let purchaseContainer = mainPlayerContainer.getElementsByClassName("purchased-card-container")[0];
   pData.reserved_cards.splice(reservedIndex, 1); // Remove card from player's reserved cards
-  pData.purchased_cards.push(clickedCard); // Add card to player's purchased cards
-  purchaseContainer.innerHTML += `<img src="images/cards/${deckColor}-${clickedCard.cardId}.jpg" />`;
-  pData.points += clickedCard.points;
-  let playerScoreContainer = mainPlayerContainer.getElementsByClassName("player-score")[0];
-  playerScoreContainer.innerText = `Score: ${pData.points}`;
-  pData.bonus[clickedCard.color] += 1;
-  let bonusGemContainer = mainPlayerContainer.getElementsByClassName("player-gem-container")[gemOrder.indexOf(clickedCard.color) - 1];
-  bonusGemContainer.getElementsByClassName("player-bonus")[0].innerText = `(${pData.bonus[clickedCard.color]})`;
   event.target.remove();
   if (pData.reserved_cards.length == 0) {
     // Remove the whole dropdown if not needed anymore
