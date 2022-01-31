@@ -1,5 +1,13 @@
 @import url("https://fonts.googleapis.com/css2?family=Merienda&display=swap");
 
+:root {
+  --block-size: 118px;
+  --player-1-color: hsla(0, 100%, 27%, 0.7);
+  --player-2-color: hsla(120, 100%, 20%, 0.7);
+  --player-3-color: hsla(240, 100%, 27%, 0.7);
+  --player-4-color: hsla(43, 89%, 38%, 0.7);
+}
+
 html {
   background-color: hsl(0, 0%, 25%);
   color: hsl(0, 0%, 85%);
@@ -104,19 +112,19 @@ h1 {
 }
 
 .player-1 {
-  background-color: hsla(0, 100%, 27%, 0.7);
+  background-color: var(--player-1-color);
 }
 
 .player-2 {
-  background-color: hsla(120, 100%, 20%, 0.7);
+  background-color: var(--player-2-color);
 }
 
 .player-3 {
-  background-color: hsla(240, 100%, 27%, 0.7);
+  background-color: var(--player-3-color);
 }
 
 .player-4 {
-  background-color: hsla(43, 89%, 38%, 0.7);
+  background-color: var(--player-4-color);
 }
 
 /* New styles for Game lobby******************************************************/
@@ -200,12 +208,9 @@ h1 {
   text-decoration: underline;
 }
 
+/* New styles for main game******************************************************/
 /*  All calcs are done with the following dimensions in mind (raw img dimensions) 
     nobles=453 x 453, cards=498 x 693, gems=339 x 339  */
-
-:root {
-  --block-size: 118px;
-}
 
 .game-table {
   display: flex;
@@ -438,7 +443,7 @@ h1 {
   font-size: calc(var(--block-size) / 6);
 }
 
-/* Turn dependent ******************************************** */
+/* Game play visualizations ******************************************** */
 #in-turn-player {
   border: solid 3px hsl(0, 0%, 85%);
 }
