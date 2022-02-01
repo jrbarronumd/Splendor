@@ -1,7 +1,7 @@
 import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
-// TODO: Turn player gem count text red (or some other color) when totalPlayerGems > 10
+// TODO: Redirect users to new game page or saved games or home if trying to load a game that doesn't exist.
 // Need to handle when the deck is running out of cards!!
 // The 10 gem max and returning gems should be stress tested.  Make sure players can't cheat or be cheated with what they can/can't return
 // Also make it obvious when someone eclipses 15 points
@@ -9,14 +9,15 @@ import CardsDeck from "./decks/cardDeck.js";
 // Reset Turn button should not actually reload the page.
 // Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
 // Delete games from db when complete, or at least all but one row.
-// Can't return a gem if you take a gold gem and have more than 10 total...
 // What happens when someone wins?!?
-// create a purchaseCard function to avoid duplicate code in buy reserved and buy from board.
 // Need some way to indicate when an action is partially underway (reserving a card after taking gold gem, buying reserved card, claiming noble...)
-// ^This can also be leveraged to confirm an action (outline a gem after it is clicked for example)
+// - ^This can also be leveraged to confirm an action (outline a gem after it is clicked for example)
+// - ^Partially completed - reserve card after taking gold gem is very obvious
 // If user clicks reserve card without having any reserved cards - kill it with an alert
 // Add # of purchased cards/reserved cards to the summary text of the drop-downs
 // Add date and rounds to saved games
+// Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
+// - ^Maybe just an alert when loading if there are 2 connections with same player?
 // TODO: Make magnification-on-hover optional (need to build a menu...)
 const socket = io();
 var numberOfPlayers, gameData, pData, gameOptions, boardGems, totalPlayerGems, p1Data, p2Data, p3Data, p4Data;
@@ -419,6 +420,25 @@ function buyCard(purchasedCard) {
   bonusGemContainer.getElementsByClassName("player-bonus")[0].innerText = `(${pData.bonus[purchasedCard.color]})`;
 }
 
+function gemCheck() {
+  // Emphasize gem counts if exceeding 10 total
+  totalPlayerGems = 0;
+  for (var i in pData.gems) {
+    totalPlayerGems += pData.gems[i];
+  }
+  if (totalPlayerGems > 10) {
+    mainPlayerContainer.getElementsByClassName("main-player-gem-row")[0].classList.add("over-ten");
+    // for (let i = 0; i < 5; i++) {
+    //   mainPlayerContainer.getElementsByClassName("player-gem-count")[i].classList.add("over-ten");
+    // }
+  } else {
+    mainPlayerContainer.getElementsByClassName("main-player-gem-row")[0].classList.remove("over-ten");
+    // for (let i = 0; i < 5; i++) {
+    //   mainPlayerContainer.getElementsByClassName("player-gem-count")[i].classList.remove("over-ten");
+    // }
+  }
+}
+
 function boardGemClickHandler(event) {
   if (actionStarted != "none" && actionStarted != "gem") {
     alert(
@@ -469,6 +489,7 @@ function boardGemClickHandler(event) {
     if (takenGemColor.length == 3) {
       actionIndex = 0; // Turn complete
     }
+    gemCheck();
   }
 }
 
@@ -514,7 +535,10 @@ function goldGemHandler() {
     const button = gameBoardCards[i].children[0];
     button.addEventListener("click", reserveCard);
   }
-  //alert("Select a card to reserve.  To cancel, you must reset your turn");
+  document.getElementById("reserve-notice").innerText = "Select a card to reserve";
+  document.getElementById("players-container").classList.add("ignore-me");
+  document.getElementsByClassName("nobles-row")[0].classList.add("ignore-me");
+  document.getElementsByClassName("gems-column")[0].classList.add("ignore-me");
 }
 
 function reserveCard(event) {
@@ -541,6 +565,11 @@ function reserveCard(event) {
   event.target.src = `images/cards/${deckColor}-00.jpg`; // Replace reserved card with face-down card
   // event.target.src = `images/cards/${deckColor}-${newCard.cardId}.jpg`; // For Troubleshooting only!
   actionIndex = 0; // Disable further actions after reserving is complete
+  document.getElementById("reserve-notice").innerText = "";
+  document.getElementById("players-container").classList.remove("ignore-me");
+  document.getElementsByClassName("nobles-row")[0].classList.remove("ignore-me");
+  document.getElementsByClassName("gems-column")[0].classList.remove("ignore-me");
+  gemCheck();
   deckCounter();
   resetEventListeners();
 }
@@ -549,7 +578,8 @@ function playerGemClickHandler(event) {
   if (activePlayer != inTurnPlayer) {
     return;
   }
-  if (actionStarted != "gem") {
+  console.log(actionStarted);
+  if (actionStarted != "gem" && actionStarted != "reserve") {
     alert(`You may only return gems if you have already taken a gem this turn. Take the gems you want, and return at the end of your turn`);
     return;
   }
@@ -574,6 +604,7 @@ function playerGemClickHandler(event) {
   playerCountContainer.innerText -= 1;
   boardGems[gemColor] += 1;
   boardCountContainer.innerText = boardCount + 1;
+  gemCheck();
 }
 
 // TODO: Do better with this

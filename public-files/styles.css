@@ -217,7 +217,7 @@ h1 {
   flex-wrap: wrap;
 }
 
-.game-board {
+#game-board {
   display: flex;
   font-size: calc(var(--block-size) / 5);
   border: solid hsla(0, 0%, 0%, 0.4);
@@ -233,6 +233,7 @@ h1 {
   display: flex;
   flex-direction: column;
   justify-content: space-evenly;
+  align-items: center;
 }
 
 .game-board-rows img {
@@ -246,6 +247,7 @@ h1 {
   justify-content: space-around;
   margin: 5px;
   align-items: center;
+  width: 100%;
 }
 
 .card-row {
@@ -295,7 +297,7 @@ h1 {
   margin-left: 10px;
 }
 
-.players {
+#players-container {
   text-align: center;
   font-size: calc(var(--block-size) / 5);
   margin-left: 10px;
@@ -377,6 +379,8 @@ h1 {
   display: flex;
   text-align: center;
   font-size: calc(var(--block-size) / 6);
+  padding: 5px;
+  border-radius: calc(var(--block-size) / 15);
 }
 
 .player-gem-container {
@@ -446,4 +450,23 @@ h1 {
 /* Game play visualizations ******************************************** */
 #in-turn-player {
   border: solid 3px hsl(0, 0%, 85%);
+}
+
+.over-ten {
+  color: hsl(0, 100%, 50%);
+  background-color: hsl(0, 0%, 0%);
+}
+
+#reserve-notice {
+  width: max-content;
+  background-color: hsl(60, 100%, 30%);
+  color: hsl(0, 0%, 0%);
+  font-size: 1.5em;
+  text-align: center;
+  padding: 0 calc(var(--block-size) / 5);
+  border-radius: calc(var(--block-size) / 15);
+}
+
+.ignore-me {
+  opacity: 0.5;
 }
