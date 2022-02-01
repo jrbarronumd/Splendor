@@ -8,7 +8,7 @@ var gameId = myQueryString.get("game_id");
 
 // As soon as connection is made, join user to the game's socket room, which will initiate game data push
 socket.on("connect", () => {
-  socket.emit("game-load", gameId, "(Game Lobby)");
+  socket.emit("game-lobby", gameId);
 });
 
 // When connection is confirmed by server, log socket ID to console

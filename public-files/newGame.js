@@ -20,6 +20,16 @@ var playerNames = ["Player 1", "Player 2", "Player 3", "Player 4"];
 var randomGameId = [...Array(8)].map(() => Math.floor(Math.random() * 17).toString(16)).join("");
 gameId = randomGameId;
 
+// As soon as connection is made, join user to the new-game socket room, which will initiate game data push
+socket.on("connect", () => {
+  socket.emit("creating-game");
+});
+
+// When connection is confirmed by server, log socket ID to console
+socket.on("connected", (result) => {
+  console.log(result);
+});
+
 // Add event listeners
 gameNameInput.addEventListener("change", changeGameName);
 createGameButton.addEventListener("click", createGame);
