@@ -2,11 +2,10 @@ import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
 // TODO: Redirect users to new game page or saved games or home if trying to load a game that doesn't exist.
-// Need to handle when the deck is running out of cards!!
 // The 10 gem max and returning gems should be stress tested.  Make sure players can't cheat or be cheated with what they can/can't return
 // Also make it obvious when someone eclipses 15 points
 // Need a game log
-// Reset Turn button should not actually reload the page.
+// Reset Turn button should not actually reload the page.  Make it smarter/more efficient
 // Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
 // Delete games from db when complete, or at least all but one row.
 // What happens when someone wins?!?
@@ -18,10 +17,12 @@ import CardsDeck from "./decks/cardDeck.js";
 // Add date and rounds to saved games
 // Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
+// Easter eggs for Carl
 // TODO: Make magnification-on-hover optional (need to build a menu...)
-const socket = io();
+
 var numberOfPlayers, gameData, pData, gameOptions, boardGems, totalPlayerGems, p1Data, p2Data, p3Data, p4Data;
 var takenGemColor = [];
+let boardCardsArray = [];
 var allPlayers = {};
 var playerOrder = [0, 1, 2, 3, 4, 1, 2, 3];
 var myQueryString = new URLSearchParams(window.location.search);
@@ -56,8 +57,10 @@ function resetEventListeners() {
   claimNobleButton.addEventListener("click", claimNobleHandler);
   for (var i = 0; i < 12; i++) {
     const button = gameBoardCards[i].children[0];
+    if (boardCardsArray[i].deck != "noDeck") {
+      button.addEventListener("click", boardCardClickHandler);
+    }
     button.removeEventListener("click", reserveCard);
-    button.addEventListener("click", boardCardClickHandler);
   }
   for (var i = 0; i < 6; i++) {
     const button = gameBoardGems[i].getElementsByTagName("img")[0];
@@ -95,6 +98,11 @@ function removeEventListeners() {
   }
 }
 
+const socket = io({
+  reconnectionDelay: 5000,
+  reconnectionAttempts: 3,
+});
+
 // As soon as connection is made, join user to the game's socket room, which will initiate game data push
 socket.on("connect", () => {
   socket.emit("game-load", gameId, activePlayer);
@@ -104,8 +112,6 @@ socket.on("connect", () => {
 socket.on("connected", (result) => {
   console.log(result);
 });
-
-// TODO: Use a disconnect event to handle server/client failures?
 
 // Server pushed gameData after connection.  This is the initial game-load ONLY.
 socket.once("game-data", (respData) => {
@@ -163,6 +169,10 @@ socket.on("new-row-result", (newData) => {
   updatePlayer(previousPlayer, previousPosition);
 });
 
+socket.on("disconnect", (reason) => {
+  console.log("Socket disconnected: " + reason);
+});
+
 function dealNobles() {
   // Recreate the nobles row 1 img at a time (over-writing the HTML for the whole div)
   let noblesLeft = noblesDeck.nobles.length;
@@ -185,10 +195,16 @@ function dealGems() {
   }
 }
 function dealCards() {
-  for (var i = 0; i < 4; i++) {
-    document.getElementById(`board-blue-${i + 1}`).src = `images/cards/blue-${blueDeck.cards[i].cardId}.jpg`;
-    document.getElementById(`board-yellow-${i + 1}`).src = `images/cards/yellow-${yellowDeck.cards[i].cardId}.jpg`;
-    document.getElementById(`board-green-${i + 1}`).src = `images/cards/green-${greenDeck.cards[i].cardId}.jpg`;
+  boardCardsArray = [blueDeck.cards.slice(0, 4), yellowDeck.cards.slice(0, 4), greenDeck.cards.slice(0, 4)].flat();
+  for (var i = 0; i < 12; i++) {
+    let imgElement = gameBoardCards[i].getElementsByTagName("img")[0];
+    // If a deck is out of cards, deal a face-down green card, then hide it
+    if (boardCardsArray[i].deck == "noDeck") {
+      imgElement.src = `images/cards/green-${boardCardsArray[i].cardId}.jpg`;
+      imgElement.parentElement.classList.add("invisible");
+    } else {
+      imgElement.src = `images/cards/${boardCardsArray[i].deck}-${boardCardsArray[i].cardId}.jpg`;
+    }
   }
   deckCounter();
 }
@@ -354,12 +370,22 @@ function boardCardClickHandler(event) {
     activeDeck = greenDeck;
   }
   purchasedCard = activeDeck.cards[deckIndex];
+  if (purchasedCard.deck == "noDeck") {
+    alert("Don't click that. Also - Contact the developer to tell him he sucks"); // Shouldn't be an event listener, but just in case...
+    return;
+  }
   let validate = buyCard(purchasedCard);
   if (validate == 0) {
     return; // Can't afford card. No alert message.
   }
-  newCard = activeDeck.cards[4];
-  activeDeck.cards.splice(4, 1); // Remove next card from deck, so it can be placed in the hole left by the purchased card
+  // Handle when deck runs out of cards
+  if (activeDeck.cards.length < 5) {
+    newCard = blankDeck.cards[0];
+    event.target.parentElement.classList.add("invisible");
+  } else {
+    newCard = activeDeck.cards[4];
+    activeDeck.cards.splice(4, 1); // Remove next card from deck, so it can be placed in the hole left by the purchased card
+  }
   activeDeck.cards.splice(deckIndex, 1, newCard);
   event.target.src = `images/cards/${deckColor}-00.jpg`; // Replace purchased card with face-down card
   // event.target.src = `images/cards/${deckColor}-${newCard.cardId}.jpg`; // For Troubleshooting only!
@@ -369,8 +395,8 @@ function boardCardClickHandler(event) {
   deckCounter();
 }
 
-// Handle a card purchase from the board or player reserved cards
 function buyCard(purchasedCard) {
+  // Handle a card purchase from the board or player reserved cards
   // Validate purchase
   let surplus = pData.gems.gold;
   for (let i = 1; i <= 5; i++) {
@@ -533,7 +559,9 @@ function goldGemHandler() {
   removeEventListeners();
   for (var i = 0; i < 12; i++) {
     const button = gameBoardCards[i].children[0];
-    button.addEventListener("click", reserveCard);
+    if (boardCardsArray[i].deck != "noDeck") {
+      button.addEventListener("click", reserveCard);
+    }
   }
   document.getElementById("player-notice").innerText = "Select a card to reserve";
   document.getElementById("players-container").classList.add("ignore-me");

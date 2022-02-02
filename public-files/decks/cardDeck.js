@@ -1,5 +1,5 @@
 export default class CardsDeck {
-  constructor(cards = blankDeck()) {
+  constructor(cards = emptyDeck()) {
     this.cards = cards;
   }
 
@@ -19,6 +19,11 @@ export default class CardsDeck {
     freshGreenDeck(this.cards, this.numberOfCards);
   }
 
+  // Don't think this is necessary...
+  blankDeck() {
+    freshBlankDeck(this.cards, this.numberOfCards);
+  }
+
   shuffle() {
     /*Goes through the deck one card at a time starting at the bottom and swaps the card with a random card in the deck
        came from WebDevSimplified card game video*/
@@ -28,10 +33,6 @@ export default class CardsDeck {
       this.cards[newIndex] = this.cards[i];
       this.cards[i] = oldValue;
     }
-  }
-
-  addOnTop(addCard) {
-    return this.cards.unshift(addCard);
   }
 }
 
@@ -49,10 +50,18 @@ class Card {
   }
 }
 
-function blankDeck() {
+function emptyDeck() {
   const Blank01 = new Card("noDeck", "00", 0, "None", 0, 0, 0, 0, 0);
   const Blank02 = new Card("noDeck", "00", 0, "None", 0, 0, 0, 0, 0);
   return [Blank01, Blank02];
+}
+
+function freshBlankDeck(activeDeck, oldCards) {
+  const Blank01 = new Card("noDeck", "00", 0, "None", 0, 0, 0, 0, 0);
+  const Blank02 = new Card("noDeck", "00", 0, "None", 0, 0, 0, 0, 0);
+  const Blank03 = new Card("noDeck", "00", 0, "None", 0, 0, 0, 0, 0);
+  const Blank04 = new Card("noDeck", "00", 0, "None", 0, 0, 0, 0, 0);
+  activeDeck.splice(0, oldCards, Blank01, Blank02, Blank03, Blank04);
 }
 
 function freshBlueDeck(activeDeck, oldCards) {
