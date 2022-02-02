@@ -453,7 +453,7 @@ h1 {
 
 /* Game play visualizations ******************************************** */
 #in-turn-player {
-  border: solid 3px hsl(0, 0%, 85%);
+  border: solid 5px hsl(0, 0%, 85%);
 }
 
 .over-ten {
@@ -463,14 +463,24 @@ h1 {
 
 #player-notice {
   width: max-content;
-  background-color: hsl(60, 100%, 30%);
-  color: hsl(0, 0%, 0%);
-  font-size: 1.5em;
+  color: black;
+  font-size: calc(var(--block-size) / 4);
+  background-color: hsl(0, 0%, 80%);
   text-align: center;
   padding: 0 calc(var(--block-size) / 5);
   border-radius: calc(var(--block-size) / 15);
 }
 
 .ignore-me {
-  opacity: 0.5;
+  opacity: 0.4;
 }
+
+.invisible {
+  opacity: 0;
+}
+
+.embiggen img {
+  width: var(--block-size);
+}
+
+/* Anything that will override game play visualizations *********************/

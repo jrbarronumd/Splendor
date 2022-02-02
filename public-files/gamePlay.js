@@ -4,19 +4,18 @@ import CardsDeck from "./decks/cardDeck.js";
 // TODO: Redirect users to new game page or saved games or home if trying to load a game that doesn't exist.
 // The 10 gem max and returning gems should be stress tested.  Make sure players can't cheat or be cheated with what they can/can't return
 // Also make it obvious when someone eclipses 15 points
+// What happens when someone wins?!?
 // Need a game log
 // Reset Turn button should not actually reload the page.  Make it smarter/more efficient
 // Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
+// Confirm an ordinary action (outline a gem after it is clicked for example)
 // Delete games from db when complete, or at least all but one row.
-// What happens when someone wins?!?
-// Need some way to indicate when an action is partially underway (reserving a card after taking gold gem, buying reserved card, claiming noble...)
-// - ^This can also be leveraged to confirm an action (outline a gem after it is clicked for example)
-// - ^Partially completed - reserve card after taking gold gem is very obvious
 // If user clicks reserve card without having any reserved cards - kill it with an alert
 // Add # of purchased cards/reserved cards to the summary text of the drop-downs
 // Add date and rounds to saved games
 // Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
+// Add ability to cancel when in the middle of reserving a card/noble, or buying a reserved cards?
 // Easter eggs for Carl
 // TODO: Make magnification-on-hover optional (need to build a menu...)
 
@@ -31,7 +30,7 @@ var activePlayer = parseInt(myQueryString.get("p").slice(-1));
 var inTurnPlayer = 0;
 var gemOrder = ["gold", "white", "blue", "green", "red", "black"];
 var actionIndex = 1; // 0 will stop any actions
-var actionStarted = "none"; // Possibilities: none, gem, card
+var actionStarted = "none"; // Possibilities: none, gem, card, etc...
 var nobleClaimed = 0; // Change to 1 on reservation to ensure only one per turn
 
 var noblesDeck = new NoblesDeck();
@@ -657,6 +656,13 @@ function buyReservedHandler() {
     );
     return;
   }
+  // Make obvious where the player must click by dimming everywhere else
+  document.getElementById("game-board").classList.add("ignore-me");
+  for (var i = 1; i < numberOfPlayers; i++) {
+    document.getElementsByClassName("player-container")[i].classList.add("ignore-me");
+  }
+  document.getElementsByClassName("main-player-gem-row")[0].classList.add("ignore-me");
+  document.getElementsByClassName("reserved-card-container")[0].classList.add("embiggen");
   console.log("Buying reserved card");
   removeEventListeners();
   for (var i = 0; i < pData.reserved_cards.length; i++) {
@@ -674,6 +680,13 @@ function selectReserved(event) {
     alert("Nope");
     return; // Can't afford card.
   }
+  // Un-dim everything BEFORE the reserved card dropdown changes or is removed.
+  document.getElementById("game-board").classList.remove("ignore-me");
+  for (var i = 1; i < numberOfPlayers; i++) {
+    document.getElementsByClassName("player-container")[i].classList.remove("ignore-me");
+  }
+  document.getElementsByClassName("main-player-gem-row")[0].classList.remove("ignore-me");
+  document.getElementsByClassName("reserved-card-container")[0].classList.remove("embiggen");
   pData.reserved_cards.splice(reservedIndex, 1); // Remove card from player's reserved cards
   event.target.remove();
   if (pData.reserved_cards.length == 0) {
@@ -696,6 +709,12 @@ function claimNobleHandler() {
     alert(`You may only claim 1 noble per turn! If you wish to claim a different one, click "Reset Turn" button`);
     return;
   }
+  document.getElementById("player-notice").innerText = "Select a Noble to claim";
+  document.getElementById("players-container").classList.add("ignore-me");
+  document.getElementsByClassName("gems-column")[0].classList.add("ignore-me");
+  document.getElementsByClassName("card-row")[0].classList.add("ignore-me");
+  document.getElementsByClassName("card-row")[1].classList.add("ignore-me");
+  document.getElementsByClassName("card-row")[2].classList.add("ignore-me");
   removeEventListeners();
   for (var i = 0; i < noblesDeck.nobles.length; i++) {
     const button = gameBoardNobles.children[i];
@@ -726,6 +745,12 @@ function selectNoble(event) {
   playerScoreContainer.innerText = `Score: ${pData.points}`;
   mainPlayerContainer.getElementsByClassName("player-noble")[0].innerHTML += `<img src="images\\nobles\\nobles-${claimedNoble.nobleId}.jpg" />`;
   nobleClaimed = 1;
+  document.getElementById("player-notice").innerText = "";
+  document.getElementById("players-container").classList.remove("ignore-me");
+  document.getElementsByClassName("gems-column")[0].classList.remove("ignore-me");
+  document.getElementsByClassName("card-row")[0].classList.remove("ignore-me");
+  document.getElementsByClassName("card-row")[1].classList.remove("ignore-me");
+  document.getElementsByClassName("card-row")[2].classList.remove("ignore-me");
   resetEventListeners();
 }
 
@@ -746,6 +771,15 @@ function getPData() {
 
 function endTurnHandler() {
   if (activePlayer != inTurnPlayer) {
+    return;
+  }
+  if (actionStarted == "none") {
+    alert("Please take your turn");
+    return;
+  }
+  if (actionIndex != 0) {
+    console.log(actionIndex);
+    alert(`Please complete your "${actionStarted}" action`);
     return;
   }
   // Enforce 10 gem max
