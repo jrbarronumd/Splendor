@@ -289,12 +289,14 @@ h1 {
 .gem-container {
   display: flex;
   align-items: center;
-  margin: 5px;
+  padding: 5px;
+  border-radius: 10px;
 }
 
 .gem-img {
   width: calc(var(--block-size) * 3.4 / 4.2);
   border-radius: calc(var(--block-size) * 3.4 / 8.4);
+  /* border: solid 1px hsl(0, 0%, 85%); */
 }
 
 .board-gem-count {
@@ -388,7 +390,9 @@ h1 {
 }
 
 .player-gem-container {
-  margin: 0 5px;
+  padding: 0 5px;
+  border-radius: 10px;
+  /* margin: 0 5px; */
 }
 
 .player-counter-labels {
@@ -479,8 +483,26 @@ h1 {
   opacity: 0;
 }
 
+.action-card img:hover {
+  border: solid 1px black;
+}
+
+.action-gem:hover {
+  background-color: hsl(0, 0%, 20%);
+}
+
 .embiggen img {
-  width: var(--block-size);
+  width: calc(var(--block-size) * 1.1);
+}
+
+.embiggen img:hover {
+  width: calc(var(--block-size) * 1.1 - 4px);
+  border: solid 3px yellow;
+}
+
+.emphasize img:hover {
+  width: calc(var(--block-size) - 2px);
+  border: solid 2px yellow;
 }
 
 /* Anything that will override game play visualizations *********************/

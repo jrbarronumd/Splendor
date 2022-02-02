@@ -133,6 +133,9 @@ socket.once("game-data", (respData) => {
   dealGems();
   dealCards();
   setTable();
+  if (inTurnPlayer == activePlayer) {
+    startActionItems();
+  }
 });
 
 // This will be executed every time another player finishes a turn
@@ -166,6 +169,9 @@ socket.on("new-row-result", (newData) => {
   dealGems();
   dealCards();
   updatePlayer(previousPlayer, previousPosition);
+  if (inTurnPlayer == activePlayer) {
+    startActionItems();
+  }
 });
 
 socket.on("disconnect", (reason) => {
@@ -391,6 +397,7 @@ function boardCardClickHandler(event) {
   // Add the gained color bonus to the table and pData
   actionStarted = "card";
   actionIndex = 0;
+  stopActionItems();
   deckCounter();
 }
 
@@ -453,14 +460,8 @@ function gemCheck() {
   }
   if (totalPlayerGems > 10) {
     mainPlayerContainer.getElementsByClassName("main-player-gem-row")[0].classList.add("over-ten");
-    // for (let i = 0; i < 5; i++) {
-    //   mainPlayerContainer.getElementsByClassName("player-gem-count")[i].classList.add("over-ten");
-    // }
   } else {
     mainPlayerContainer.getElementsByClassName("main-player-gem-row")[0].classList.remove("over-ten");
-    // for (let i = 0; i < 5; i++) {
-    //   mainPlayerContainer.getElementsByClassName("player-gem-count")[i].classList.remove("over-ten");
-    // }
   }
 }
 
@@ -483,6 +484,7 @@ function boardGemClickHandler(event) {
     let gemColor = gemOrder[gemIndex];
     if (gemIndex == 0) {
       goldGemHandler();
+      stopActionItems();
       return;
     }
     if (boardCount == 0) {
@@ -514,6 +516,7 @@ function boardGemClickHandler(event) {
     if (takenGemColor.length == 3) {
       actionIndex = 0; // Turn complete
     }
+    startActionItems();
     gemCheck();
   }
 }
@@ -566,6 +569,9 @@ function goldGemHandler() {
   document.getElementById("players-container").classList.add("ignore-me");
   document.getElementsByClassName("nobles-row")[0].classList.add("ignore-me");
   document.getElementsByClassName("gems-column")[0].classList.add("ignore-me");
+  for (var i = 0; i < 12; i++) {
+    document.getElementsByClassName("card-container")[i].classList.add("emphasize");
+  }
 }
 
 function reserveCard(event) {
@@ -596,6 +602,10 @@ function reserveCard(event) {
   document.getElementById("players-container").classList.remove("ignore-me");
   document.getElementsByClassName("nobles-row")[0].classList.remove("ignore-me");
   document.getElementsByClassName("gems-column")[0].classList.remove("ignore-me");
+  for (var i = 0; i < 12; i++) {
+    document.getElementsByClassName("card-container")[i].classList.remove("emphasize");
+  }
+  startActionItems();
   gemCheck();
   deckCounter();
   resetEventListeners();
@@ -605,7 +615,6 @@ function playerGemClickHandler(event) {
   if (activePlayer != inTurnPlayer) {
     return;
   }
-  console.log(actionStarted);
   if (actionStarted != "gem" && actionStarted != "reserve") {
     alert(`You may only return gems if you have already taken a gem this turn. Take the gems you want, and return at the end of your turn`);
     return;
@@ -623,7 +632,7 @@ function playerGemClickHandler(event) {
   }
   let gemReturn = takenGemColor.indexOf(gemColor); // Will return -1 if gem color was not taken this turn
   if (gemReturn >= 0) {
-    // If gem is being returned is one that was taken this turn, another gem can be taken (remove from takenGemColor)
+    // If gem being returned is one that was taken this turn, another gem can be taken (remove from takenGemColor)
     takenGemColor.splice(gemReturn, 1);
     actionIndex = 1;
   }
@@ -631,6 +640,7 @@ function playerGemClickHandler(event) {
   playerCountContainer.innerText -= 1;
   boardGems[gemColor] += 1;
   boardCountContainer.innerText = boardCount + 1;
+  startActionItems();
   gemCheck();
 }
 
@@ -715,6 +725,7 @@ function claimNobleHandler() {
   document.getElementsByClassName("card-row")[0].classList.add("ignore-me");
   document.getElementsByClassName("card-row")[1].classList.add("ignore-me");
   document.getElementsByClassName("card-row")[2].classList.add("ignore-me");
+  document.getElementsByClassName("nobles-row")[0].classList.add("embiggen");
   removeEventListeners();
   for (var i = 0; i < noblesDeck.nobles.length; i++) {
     const button = gameBoardNobles.children[i];
@@ -751,7 +762,54 @@ function selectNoble(event) {
   document.getElementsByClassName("card-row")[0].classList.remove("ignore-me");
   document.getElementsByClassName("card-row")[1].classList.remove("ignore-me");
   document.getElementsByClassName("card-row")[2].classList.remove("ignore-me");
+  document.getElementsByClassName("nobles-row")[0].classList.remove("embiggen");
   resetEventListeners();
+}
+
+function startActionItems() {
+  if (actionStarted == "none") {
+    for (var i = 0; i < 12; i++) {
+      gameBoardCards[i].classList.add("action-card");
+    }
+    for (var i = 0; i < 6; i++) {
+      if (boardGems[gemOrder[i]] > 0) {
+        gameBoardGems[i].classList.add("action-gem");
+      }
+    }
+  } // Handle gem taking/returning
+  else if (actionStarted == "gem" || actionStarted == "reserve") {
+    // Remove all highlighting first - easier this way
+    stopActionItems();
+    // Player gems
+    for (var i = 0; i < 5; i++) {
+      if (pData.gems[gemOrder[i + 1]] > 0) {
+        mainPlayerContainer.getElementsByClassName("player-gem-container")[i].classList.add("action-gem");
+      }
+    }
+    // Board Gems (skip gold)
+    if (actionIndex == 1 && actionStarted == "gem") {
+      for (var i = 1; i < 6; i++) {
+        let duplicate = takenGemColor.indexOf(gemOrder[i]) >= 0;
+        if (boardGems[gemOrder[i]] > 0 && (boardGems[gemOrder[i]] > 2 || !duplicate) && (takenGemColor.length < 2 || !duplicate)) {
+          gameBoardGems[i].classList.add("action-gem");
+        }
+      }
+    }
+  } else {
+    stopActionItems();
+  }
+}
+
+function stopActionItems() {
+  for (var i = 0; i < 12; i++) {
+    gameBoardCards[i].classList.remove("action-card");
+  }
+  for (var i = 0; i < 6; i++) {
+    gameBoardGems[i].classList.remove("action-gem");
+  }
+  for (var i = 0; i < 5; i++) {
+    mainPlayerContainer.getElementsByClassName("player-gem-container")[i].classList.remove("action-gem");
+  }
 }
 
 function getPData() {
@@ -837,5 +895,6 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   playerDiv.id = "in-turn-player";
   document.getElementById("turn-marker").innerText = `${body[`player_${inTurnPlayer}`].name}'s Turn`;
   document.getElementById("round-counter").innerText = `Round: ${round}`;
+  stopActionItems();
   dealCards();
 }
