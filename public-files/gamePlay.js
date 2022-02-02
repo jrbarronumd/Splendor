@@ -535,7 +535,7 @@ function goldGemHandler() {
     const button = gameBoardCards[i].children[0];
     button.addEventListener("click", reserveCard);
   }
-  document.getElementById("reserve-notice").innerText = "Select a card to reserve";
+  document.getElementById("player-notice").innerText = "Select a card to reserve";
   document.getElementById("players-container").classList.add("ignore-me");
   document.getElementsByClassName("nobles-row")[0].classList.add("ignore-me");
   document.getElementsByClassName("gems-column")[0].classList.add("ignore-me");
@@ -565,7 +565,7 @@ function reserveCard(event) {
   event.target.src = `images/cards/${deckColor}-00.jpg`; // Replace reserved card with face-down card
   // event.target.src = `images/cards/${deckColor}-${newCard.cardId}.jpg`; // For Troubleshooting only!
   actionIndex = 0; // Disable further actions after reserving is complete
-  document.getElementById("reserve-notice").innerText = "";
+  document.getElementById("player-notice").innerText = "";
   document.getElementById("players-container").classList.remove("ignore-me");
   document.getElementsByClassName("nobles-row")[0].classList.remove("ignore-me");
   document.getElementsByClassName("gems-column")[0].classList.remove("ignore-me");

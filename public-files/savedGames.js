@@ -47,5 +47,11 @@ function loadPageInfo() {
       newPlayerSpan.innerHTML = `<a href="game?game_id=${gameId}&p=p${j}">${JSON.parse(playerNames[j - 1]).name}</a>`;
       newGameSpan.append(newPlayerSpan);
     }
+    let dateSpan = document.createElement("span");
+    let date = new Date(gameData[i].date_created);
+    date = new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit", year: "numeric" }).format(date);
+    dateSpan.classList.add("date-created");
+    dateSpan.innerText = `Created - ${date}`;
+    newGameLI.appendChild(dateSpan);
   }
 }

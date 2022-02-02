@@ -208,6 +208,10 @@ h1 {
   text-decoration: underline;
 }
 
+.date-created {
+  margin-left: 20px;
+}
+
 /* New styles for main game******************************************************/
 /*  All calcs are done with the following dimensions in mind (raw img dimensions) 
     nobles=453 x 453, cards=498 x 693, gems=339 x 339  */
@@ -457,7 +461,7 @@ h1 {
   background-color: hsl(0, 0%, 0%);
 }
 
-#reserve-notice {
+#player-notice {
   width: max-content;
   background-color: hsl(60, 100%, 30%);
   color: hsl(0, 0%, 0%);
