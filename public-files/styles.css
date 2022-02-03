@@ -491,6 +491,10 @@ h1 {
   background-color: hsl(0, 0%, 20%);
 }
 
+.negative-gem {
+  background-color: hsl(305, 40%, 35%);
+}
+
 .action-gem:hover {
   background-color: hsl(0, 0%, 15%);
 }

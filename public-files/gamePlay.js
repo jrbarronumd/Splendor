@@ -21,6 +21,7 @@ import CardsDeck from "./decks/cardDeck.js";
 
 var numberOfPlayers, gameData, pData, gameOptions, boardGems, totalPlayerGems, p1Data, p2Data, p3Data, p4Data;
 var takenGemColor = [];
+var negativeGemColor = [];
 let boardCardsArray = [];
 var allPlayers = {};
 var playerOrder = [0, 1, 2, 3, 4, 1, 2, 3];
@@ -497,8 +498,8 @@ function boardGemClickHandler(event) {
       alert(`There are no ${gemColor} gems left`);
       return;
     }
-    let duplicate = takenGemColor.find((color) => color == gemColor); // Will return gem color if it finds a duplicate
-    if (duplicate === gemColor) {
+    let duplicate = takenGemColor.indexOf(gemColor) >= 0; // Boolean value
+    if (duplicate) {
       // If the clicked color has already been clicked in this turn
       if (takenGemColor.length > 1) {
         alert("You've already taken 2 gems. You can't take a duplicate at this time.");
@@ -510,20 +511,29 @@ function boardGemClickHandler(event) {
         actionIndex = 0; // If legally taking 2 of 1 color, disable further actions
       }
     }
-    actionStarted = "gem";
+    let playerCountContainer = mainPlayerContainer.getElementsByClassName("player-gem-count")[gemIndex - 1];
+    let negativeReturn = negativeGemColor.indexOf(gemColor);
+    if (negativeReturn >= 0) {
+      negativeGemColor.splice(negativeReturn, 1);
+      let duplicateNegativeReturn = negativeGemColor.indexOf(gemColor);
+      if (duplicateNegativeReturn < 0) {
+        playerCountContainer.parentElement.classList.remove("negative-gem");
+      }
+    } else {
+      takenGemColor.push(gemColor);
+      clickedContainer.classList.add("acted-on");
+      playerCountContainer.parentElement.classList.add("acted-on");
+    }
     boardGems[gemColor] -= 1;
     boardCountContainer.innerText -= 1;
-    clickedContainer.classList.add("acted-on");
-    let playerCountContainer = mainPlayerContainer.getElementsByClassName("player-gem-count")[gemIndex - 1];
     let playerGemCount = parseInt(playerCountContainer.innerText);
     pData.gems[gemColor] += 1;
     playerGemCount += 1;
     playerCountContainer.innerText = playerGemCount;
-    playerCountContainer.parentElement.classList.add("acted-on");
-    takenGemColor.push(gemColor);
     if (takenGemColor.length == 3) {
       actionIndex = 0; // Turn complete
     }
+    actionStarted = "gem";
     startActionItems();
     gemCheck();
   }
@@ -642,7 +652,16 @@ function playerGemClickHandler(event) {
   if (gemReturn >= 0) {
     // If gem being returned is one that was taken this turn, another gem can be taken (remove from takenGemColor)
     takenGemColor.splice(gemReturn, 1);
+    let duplicateReturn = takenGemColor.indexOf(gemColor);
+    if (duplicateReturn < 0) {
+      // Leave gems highlighted if returning 1 of duplicate gem (still one taken)
+      clickedContainer.classList.remove("acted-on");
+      gameBoardGems[gemIndex].classList.remove("acted-on");
+    }
     actionIndex = 1;
+  } else {
+    negativeGemColor.push(gemColor);
+    clickedContainer.classList.add("negative-gem");
   }
   pData.gems[gemColor] -= 1;
   playerCountContainer.innerText -= 1;
