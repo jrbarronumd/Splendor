@@ -487,8 +487,12 @@ h1 {
   border: solid 1px black;
 }
 
-.action-gem:hover {
+.acted-on {
   background-color: hsl(0, 0%, 20%);
+}
+
+.action-gem:hover {
+  background-color: hsl(0, 0%, 15%);
 }
 
 .embiggen img {

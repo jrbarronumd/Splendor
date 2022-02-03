@@ -135,6 +135,9 @@ socket.once("game-data", (respData) => {
   setTable();
   if (inTurnPlayer == activePlayer) {
     startActionItems();
+    document.getElementsByClassName("action-buttons")[0].classList.remove("invisible");
+  } else {
+    document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
   }
 });
 
@@ -171,6 +174,9 @@ socket.on("new-row-result", (newData) => {
   updatePlayer(previousPlayer, previousPosition);
   if (inTurnPlayer == activePlayer) {
     startActionItems();
+    document.getElementsByClassName("action-buttons")[0].classList.remove("invisible");
+  } else {
+    document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
   }
 });
 
@@ -507,11 +513,13 @@ function boardGemClickHandler(event) {
     actionStarted = "gem";
     boardGems[gemColor] -= 1;
     boardCountContainer.innerText -= 1;
+    clickedContainer.classList.add("acted-on");
     let playerCountContainer = mainPlayerContainer.getElementsByClassName("player-gem-count")[gemIndex - 1];
     let playerGemCount = parseInt(playerCountContainer.innerText);
     pData.gems[gemColor] += 1;
     playerGemCount += 1;
     playerCountContainer.innerText = playerGemCount;
+    playerCountContainer.parentElement.classList.add("acted-on");
     takenGemColor.push(gemColor);
     if (takenGemColor.length == 3) {
       actionIndex = 0; // Turn complete
@@ -895,6 +903,11 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   playerDiv.id = "in-turn-player";
   document.getElementById("turn-marker").innerText = `${body[`player_${inTurnPlayer}`].name}'s Turn`;
   document.getElementById("round-counter").innerText = `Round: ${round}`;
+  let elementsActedOn = document.getElementsByClassName("acted-on").length;
+  for (var i = 0; i < elementsActedOn; i++) {
+    document.getElementsByClassName("acted-on")[0].classList.remove("acted-on");
+  }
+  document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
   stopActionItems();
   dealCards();
 }
