@@ -8,15 +8,16 @@ import CardsDeck from "./decks/cardDeck.js";
 // Need a game log
 // Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
 // Delete games from db when complete, or at least all but one row.
-// If user clicks reserve card without having any reserved cards - kill it with an alert
 // Add # of purchased cards/reserved cards to the summary text of the drop-downs
-// Add total purchasing power to html
-// Add date and rounds to saved games
+// Add rounds to saved games
 // Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
 // Add ability to cancel when in the middle of reserving a card/noble, or buying a reserved cards?
 // - ^Keep reset turn illuminated - that will do the job
 // Easter eggs for Carl
+// - ^Rick-roll the winner
+// If only 1 or 2 gems can be taken, user can't end turn
+// Have another row to show total purchasing power
 // TODO: Make magnification-on-hover optional (need to build a menu...)
 
 var numberOfPlayers,
@@ -64,6 +65,17 @@ var endTurnButton = document.getElementById("end-turn");
 var buyReservedButton = document.getElementById("buy-reserved");
 var claimNobleButton = document.getElementById("claim-noble");
 resetTurnButton.addEventListener("click", resetTurnHandler); // Should never be removed
+
+initiateNotifications();
+function initiateNotifications() {
+  if (!Notification) {
+    alert("Desktop notifications not available in your browser. Try Chrome, Edge, or FireFox."); //if browser is not compatible this will occur
+    return;
+  }
+  if (Notification.permission !== "granted") {
+    Notification.requestPermission();
+  }
+}
 
 function resetEventListeners() {
   endTurnButton.addEventListener("click", endTurnHandler);
@@ -138,6 +150,7 @@ socket.once("game-data", (respData) => {
   setTable();
   if (inTurnPlayer == activePlayer) {
     startActionItems();
+    new Notification("Time To Play!", { body: "It's your turn" });
     document.getElementsByClassName("action-buttons")[0].classList.remove("invisible");
   } else {
     document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
@@ -181,6 +194,7 @@ socket.on("new-row-result", (newData) => {
   updatePlayer(previousPlayer, previousPosition);
   if (inTurnPlayer == activePlayer) {
     startActionItems();
+    new Notification("Time To Play!", { body: "It's your turn" });
     document.getElementsByClassName("action-buttons")[0].classList.remove("invisible");
   } else {
     document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
@@ -292,6 +306,10 @@ function updatePlayer(player, playerPosition) {
   for (let j = 0; j < newGolds; j++) {
     let newDivContents = `<img src="images/gems/goldGem.jpg" />`;
     goldGemContainer.innerHTML += newDivContents;
+  }
+  // Remove Gold gems if necessary
+  for (let j = newGolds; j < 0; j++) {
+    goldGemContainer.firstElementChild.remove();
   }
   // Populate player gems/bonus counts
   for (let j = 1; j <= 5; j++) {
@@ -709,6 +727,10 @@ function buyReservedHandler() {
     );
     return;
   }
+  if (pData.reserved_cards.length == 0) {
+    alert(`You don't have any cards reserved, numbskull! Do something legal!`);
+    return;
+  }
   // Make obvious where the player must click by dimming everywhere else
   document.getElementById("game-board").classList.add("ignore-me");
   for (var i = 1; i < numberOfPlayers; i++) {
@@ -859,7 +881,6 @@ function resetTurnHandler() {
   if (activePlayer != inTurnPlayer) {
     return;
   }
-  console.log(resetState);
   if (resetState == "update") {
     newRowUpdate(resetData);
   } else if (resetState == "initial") {
@@ -923,7 +944,6 @@ function endTurnHandler() {
     return;
   }
   if (actionIndex != 0) {
-    console.log(actionIndex);
     alert(`Please complete your "${actionStarted}" action`);
     return;
   }
