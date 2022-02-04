@@ -15,6 +15,7 @@ import CardsDeck from "./decks/cardDeck.js";
 // Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
 // Add ability to cancel when in the middle of reserving a card/noble, or buying a reserved cards?
+// - ^Keep reset turn illuminated - that will do the job
 // Easter eggs for Carl
 // TODO: Make magnification-on-hover optional (need to build a menu...)
 
@@ -694,33 +695,6 @@ function playerGemClickHandler(event) {
   gemCheck();
 }
 
-function resetTurnHandler() {
-  if (activePlayer != inTurnPlayer) {
-    return;
-  }
-  if (resetState == "update") {
-    newRowUpdate(resetData);
-  } else if (resetState == "initial") {
-    initialLoad(resetData);
-  } else {
-    alert("Something has gone very wrong with the reset. Press reload in your browser.");
-    return;
-  }
-  takenGemColor = [];
-  negativeGemColor = [];
-  actionIndex = 1; // 0 will stop any actions
-  actionStarted = "none"; // Possibilities: none, gem, card, etc...
-  nobleClaimed = 0;
-  dealNobles();
-  dealGems();
-  dealCards();
-  updatePlayer(activePlayer, 0);
-  let elementsActedOn = document.getElementsByClassName("acted-on").length;
-  for (var i = 0; i < elementsActedOn; i++) {
-    document.getElementsByClassName("acted-on")[0].classList.remove("acted-on");
-  }
-}
-
 function buyReservedHandler() {
   if (activePlayer != inTurnPlayer) {
     return;
@@ -879,6 +853,50 @@ function stopActionItems() {
   for (var i = 0; i < 5; i++) {
     mainPlayerContainer.getElementsByClassName("player-gem-container")[i].classList.remove("action-gem");
   }
+}
+
+function resetTurnHandler() {
+  if (activePlayer != inTurnPlayer) {
+    return;
+  }
+  console.log(resetState);
+  if (resetState == "update") {
+    newRowUpdate(resetData);
+  } else if (resetState == "initial") {
+    initialLoad(resetData);
+  } else {
+    alert("Something has gone very wrong with the reset. Press reload in your browser.");
+    return;
+  }
+  takenGemColor = [];
+  negativeGemColor = [];
+  actionIndex = 1;
+  actionStarted = "none";
+  nobleClaimed = 0;
+  dealNobles();
+  dealGems();
+  dealCards();
+  updatePlayer(activePlayer, 0);
+  gemCheck();
+  let elementsActedOn = document.getElementsByClassName("acted-on").length;
+  for (var i = 0; i < elementsActedOn; i++) {
+    document.getElementsByClassName("acted-on")[0].classList.remove("acted-on");
+  }
+  let ignoredElements = document.getElementsByClassName("ignore-me").length;
+  for (var i = 0; i < ignoredElements; i++) {
+    document.getElementsByClassName("ignore-me")[0].classList.remove("ignore-me");
+  }
+  let embiggenElements = document.getElementsByClassName("embiggen").length;
+  for (var i = 0; i < embiggenElements; i++) {
+    document.getElementsByClassName("embiggen")[0].classList.remove("embiggen");
+  }
+  let emphasizedElements = document.getElementsByClassName("emphasize").length;
+  for (var i = 0; i < emphasizedElements; i++) {
+    document.getElementsByClassName("emphasize")[0].classList.remove("emphasize");
+  }
+  document.getElementById("player-notice").innerText = "";
+  startActionItems();
+  resetEventListeners();
 }
 
 function getPData() {
