@@ -6,12 +6,11 @@ import CardsDeck from "./decks/cardDeck.js";
 // Also make it obvious when someone eclipses 15 points
 // What happens when someone wins?!?
 // Need a game log
-// Reset Turn button should not actually reload the page.  Make it smarter/more efficient
 // Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
-// Confirm an ordinary action (outline a gem after it is clicked for example)
 // Delete games from db when complete, or at least all but one row.
 // If user clicks reserve card without having any reserved cards - kill it with an alert
 // Add # of purchased cards/reserved cards to the summary text of the drop-downs
+// Add total purchasing power to html
 // Add date and rounds to saved games
 // Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
@@ -19,7 +18,21 @@ import CardsDeck from "./decks/cardDeck.js";
 // Easter eggs for Carl
 // TODO: Make magnification-on-hover optional (need to build a menu...)
 
-var numberOfPlayers, gameData, pData, gameOptions, boardGems, totalPlayerGems, p1Data, p2Data, p3Data, p4Data;
+var numberOfPlayers,
+  gameData,
+  resetData,
+  resetState,
+  previousPlayer,
+  previousPosition,
+  pData,
+  gameOptions,
+  boardGems,
+  totalPlayerGems,
+  p1Data,
+  p2Data,
+  p3Data,
+  p4Data,
+  round;
 var takenGemColor = [];
 var negativeGemColor = [];
 let boardCardsArray = [];
@@ -115,7 +128,23 @@ socket.on("connected", (result) => {
 
 // Server pushed gameData after connection.  This is the initial game-load ONLY.
 socket.once("game-data", (respData) => {
-  gameData = respData;
+  resetState = "initial"; // Will change to "update" after any new data is pushed.
+  resetData = respData;
+  initialLoad(respData);
+  dealNobles();
+  dealGems();
+  dealCards();
+  setTable();
+  if (inTurnPlayer == activePlayer) {
+    startActionItems();
+    document.getElementsByClassName("action-buttons")[0].classList.remove("invisible");
+  } else {
+    document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
+  }
+});
+
+function initialLoad(data) {
+  gameData = data;
   numberOfPlayers = JSON.parse(gameData.players);
   pData = JSON.parse(gameData[`player_${activePlayer}`]);
   boardGems = JSON.parse(gameData.board_gems);
@@ -130,39 +159,15 @@ socket.once("game-data", (respData) => {
   p3Data = JSON.parse(gameData.player_3);
   p4Data = JSON.parse(gameData.player_4);
   allPlayers = { p1Data, p2Data, p3Data, p4Data };
-  dealNobles();
-  dealGems();
-  dealCards();
-  setTable();
-  if (inTurnPlayer == activePlayer) {
-    startActionItems();
-    document.getElementsByClassName("action-buttons")[0].classList.remove("invisible");
-  } else {
-    document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
-  }
-});
+}
 
 // This will be executed every time another player finishes a turn
 socket.on("new-row-result", (newData) => {
-  let previousPlayer = inTurnPlayer;
-  let previousPosition = playerOrder.indexOf(previousPlayer);
-  gameData = newData;
-  let round = parseInt(gameData.save_id.toString().slice(0, -2));
-  numberOfPlayers = gameData.players;
-  pData = gameData[`player_${activePlayer}`];
-  boardGems = gameData.board_gems;
-  inTurnPlayer = parseInt(gameData.save_id.toString().slice(-1));
-  gameOptions = gameData.game_options;
-  noblesDeck.nobles = gameData.nobles;
-  blueDeck.cards = gameData.blue_deck;
-  yellowDeck.cards = gameData.yellow_deck;
-  greenDeck.cards = gameData.green_deck;
-  p1Data = gameData.player_1;
-  p2Data = gameData.player_2;
-  p3Data = gameData.player_3;
-  p4Data = gameData.player_4;
-  allPlayers = { p1Data, p2Data, p3Data, p4Data };
-
+  resetState = "update";
+  resetData = JSON.parse(JSON.stringify(newData)); // To create a copy of the data to be used for reset
+  previousPlayer = inTurnPlayer;
+  previousPosition = playerOrder.indexOf(previousPlayer);
+  newRowUpdate(newData);
   document.getElementById("turn-marker").innerText = `${gameData[`player_${inTurnPlayer}`].name}'s Turn`;
   document.getElementById("round-counter").innerText = `Round: ${round}`;
   // Clear outlined player container, and move to next player
@@ -180,6 +185,24 @@ socket.on("new-row-result", (newData) => {
     document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
   }
 });
+
+function newRowUpdate(data) {
+  gameData = data;
+  round = parseInt(gameData.save_id.toString().slice(0, -2));
+  pData = gameData[`player_${activePlayer}`];
+  boardGems = gameData.board_gems;
+  inTurnPlayer = parseInt(gameData.save_id.toString().slice(-1));
+  gameOptions = gameData.game_options;
+  noblesDeck.nobles = gameData.nobles;
+  blueDeck.cards = gameData.blue_deck;
+  yellowDeck.cards = gameData.yellow_deck;
+  greenDeck.cards = gameData.green_deck;
+  p1Data = gameData.player_1;
+  p2Data = gameData.player_2;
+  p3Data = gameData.player_3;
+  p4Data = gameData.player_4;
+  allPlayers = { p1Data, p2Data, p3Data, p4Data };
+}
 
 socket.on("disconnect", (reason) => {
   console.log("Socket disconnected: " + reason);
@@ -227,7 +250,7 @@ function setTable() {
   playerOrder = playerOrder.slice(activePlayer, activePlayer + numberOfPlayers);
   document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)].id = "in-turn-player";
   document.getElementById("turn-marker").innerText = `${JSON.parse(gameData[`player_${inTurnPlayer}`]).name}'s Turn`;
-  let round = parseInt(gameData.save_id.toString().slice(0, -2));
+  round = parseInt(gameData.save_id.toString().slice(0, -2));
   document.getElementById("round-counter").innerText = `Round: ${round}`;
   // First delete the extra player divs (I think easier than starting with 2)
   for (var i = 4; i > numberOfPlayers; i--) {
@@ -671,12 +694,31 @@ function playerGemClickHandler(event) {
   gemCheck();
 }
 
-// TODO: Do better with this
 function resetTurnHandler() {
   if (activePlayer != inTurnPlayer) {
     return;
   }
-  location.reload();
+  if (resetState == "update") {
+    newRowUpdate(resetData);
+  } else if (resetState == "initial") {
+    initialLoad(resetData);
+  } else {
+    alert("Something has gone very wrong with the reset. Press reload in your browser.");
+    return;
+  }
+  takenGemColor = [];
+  negativeGemColor = [];
+  actionIndex = 1; // 0 will stop any actions
+  actionStarted = "none"; // Possibilities: none, gem, card, etc...
+  nobleClaimed = 0;
+  dealNobles();
+  dealGems();
+  dealCards();
+  updatePlayer(activePlayer, 0);
+  let elementsActedOn = document.getElementsByClassName("acted-on").length;
+  for (var i = 0; i < elementsActedOn; i++) {
+    document.getElementsByClassName("acted-on")[0].classList.remove("acted-on");
+  }
 }
 
 function buyReservedHandler() {
@@ -880,7 +922,7 @@ Please return ${totalPlayerGems - 10} gem(s) by clicking on the image of the gem
 Gold gems can only be returned if if you took them this turn by clicking the "Reset Turn" button.`);
     return;
   }
-  let round = parseInt(gameData.save_id.toString().slice(0, -2));
+  round = parseInt(gameData.save_id.toString().slice(0, -2));
   if (inTurnPlayer == numberOfPlayers) {
     round += 1;
     inTurnPlayer = 1;
