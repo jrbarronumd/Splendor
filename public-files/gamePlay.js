@@ -2,13 +2,13 @@ import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
 // TODO: Redirect users to new game page or saved games or home if trying to load a game that doesn't exist.
+// Pink highlight doesn't disappear after returning gems in a reserve card scenario
 // The 10 gem max and returning gems should be stress tested.  Make sure players can't cheat or be cheated with what they can/can't return
 // Also make it obvious when someone eclipses 15 points
 // What happens when someone wins?!?
 // Need a game log
 // Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
 // Delete games from db when complete, or at least all but one row.
-// Add # of purchased cards/reserved cards to the summary text of the drop-downs
 // Add rounds to saved games
 // Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
@@ -331,13 +331,15 @@ function updatePlayer(player, playerPosition) {
       newElement.classList.add("player-details");
       newElement.setAttribute("open", true);
       let newElementContents = `
-        <summary>Reserved Cards</summary>
+        <summary>Reserved Cards (${reserveCount})</summary>
         <div class="reserved-card-container">
         </div>`;
       newElement.innerHTML = newElementContents;
       dropDownContainer.insertBefore(newElement, dropDownContainer.firstChild);
     }
     reserveContainer = playerDiv.getElementsByClassName("reserved-card-container")[0];
+    reserveContainer.parentElement.getElementsByTagName("summary")[0].innerText = `Reserved Cards (${reserveCount})`;
+
     // If adding cards to dropdown
     if (reserveCount > existingReserved) {
       for (let j = existingReserved; j < reserveCount; j++) {
@@ -345,7 +347,7 @@ function updatePlayer(player, playerPosition) {
       }
     } // If removing card from dropdown
     else if (reserveCount < existingReserved) {
-      for (let j = 0; j < existingReserved; j++) {
+      for (let j = existingReserved - 1; j >= 0; j--) {
         // Delete img if img ID doesn't match any reserved card
         let imgId = reserveContainer.getElementsByTagName("img")[j].src.slice(-6, -4);
         let idFound = 0;
@@ -378,13 +380,14 @@ function updatePlayer(player, playerPosition) {
       let newElement = document.createElement("details");
       newElement.classList.add("player-details");
       let newElementContents = `
-      <summary>Purchased Cards</summary>
+      <summary>Purchased Cards (${purchaseCount})</summary>
       <div class="purchased-card-container">
       </div>`;
       newElement.innerHTML = newElementContents;
       dropDownContainer.append(newElement);
     }
     purchaseContainer = playerDiv.getElementsByClassName("purchased-card-container")[0];
+    purchaseContainer.parentElement.getElementsByTagName("summary")[0].innerText = `Purchased Cards (${purchaseCount})`;
     for (let j = existingPurchased; j < purchaseCount; j++) {
       purchaseContainer.innerHTML += `<img src="images/cards/${purchasedCards[j].deck}-${purchasedCards[j].cardId}.jpg" />`;
     }
@@ -483,7 +486,7 @@ function buyCard(purchasedCard) {
     let newElement = document.createElement("details");
     newElement.classList.add("player-details");
     let newElementContents = `
-      <summary>Purchased Cards</summary>
+      <summary>Purchased Cards (1)</summary>
       <div class="purchased-card-container">
       </div>`;
     newElement.innerHTML = newElementContents;
@@ -494,6 +497,7 @@ function buyCard(purchasedCard) {
   purchaseContainer.innerHTML += `<img src="images/cards/${deckColor}-${purchasedCard.cardId}.jpg" />`;
   pData.purchased_cards.push(purchasedCard); // Add card to player's purchased cards
   pData.points += purchasedCard.points;
+  purchaseContainer.parentElement.getElementsByTagName("summary")[0].innerText = `Purchased Cards (${pData.purchased_cards.length})`;
   let playerScoreContainer = mainPlayerContainer.getElementsByClassName("player-score")[0];
   playerScoreContainer.innerText = `Score: ${pData.points}`;
   pData.bonus[purchasedCard.color] += 1;
@@ -603,7 +607,7 @@ function goldGemHandler() {
     newElement.classList.add("player-details");
     newElement.setAttribute("open", true);
     let newElementContents = `
-    <summary>Reserved Cards</summary>
+    <summary>Reserved Cards (1)</summary>
     <div class="reserved-card-container">
     </div>`;
     newElement.innerHTML = newElementContents;
@@ -654,6 +658,7 @@ function reserveCard(event) {
   activeDeck.cards.splice(4, 1);
   activeDeck.cards.splice(deckIndex, 1, newCard);
   pData.reserved_cards.push(reservedCard); // Add card to player's reserved cards
+  reserveContainer.parentElement.getElementsByTagName("summary")[0].innerText = `Reserved Cards (${pData.reserved_cards.length})`;
   reserveContainer.innerHTML += `<img src="images/cards/${deckColor}-${reservedCard.cardId}.jpg" />`;
   event.target.src = `images/cards/${deckColor}-00.jpg`; // Replace reserved card with face-down card
   // event.target.src = `images/cards/${deckColor}-${newCard.cardId}.jpg`; // For Troubleshooting only!
@@ -751,6 +756,7 @@ function selectReserved(event) {
   let reservedIndex = Array.prototype.indexOf.call(clickedCardImg.parentElement.children, clickedCardImg);
   let clickedCard = pData.reserved_cards[reservedIndex];
   let validate = buyCard(clickedCard);
+  let reserveContainer = mainPlayerContainer.getElementsByClassName("reserved-card-container")[0];
   if (validate == 0) {
     alert("Nope");
     return; // Can't afford card.
@@ -761,13 +767,13 @@ function selectReserved(event) {
     document.getElementsByClassName("player-container")[i].classList.remove("ignore-me");
   }
   document.getElementsByClassName("main-player-gem-row")[0].classList.remove("ignore-me");
-  document.getElementsByClassName("reserved-card-container")[0].classList.remove("embiggen");
+  reserveContainer.classList.remove("embiggen");
   pData.reserved_cards.splice(reservedIndex, 1); // Remove card from player's reserved cards
   event.target.remove();
+  reserveContainer.parentElement.getElementsByTagName("summary")[0].innerText = `Reserved Cards (${pData.reserved_cards.length})`;
   if (pData.reserved_cards.length == 0) {
     // Remove the whole dropdown if not needed anymore
-    let reserveContainer = mainPlayerContainer.getElementsByClassName("reserved-card-container")[0].parentElement;
-    reserveContainer.remove();
+    reserveContainer.parentElement.remove();
   }
   actionStarted = "buy reserved";
   actionIndex = 0;
