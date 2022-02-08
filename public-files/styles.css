@@ -481,6 +481,7 @@ h1 {
 
 .invisible {
   opacity: 0;
+  height: 0;
 }
 
 .action-card img:hover {

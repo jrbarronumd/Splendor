@@ -2,8 +2,6 @@ import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
 // TODO: Redirect users to new game page or saved games or home if trying to load a game that doesn't exist.
-// Pink highlight doesn't disappear after returning gems in a reserve card scenario
-// The 10 gem max and returning gems should be stress tested.  Make sure players can't cheat or be cheated with what they can/can't return
 // Also make it obvious when someone eclipses 15 points
 // What happens when someone wins?!?
 // Need a game log
@@ -16,7 +14,6 @@ import CardsDeck from "./decks/cardDeck.js";
 // - ^Keep reset turn illuminated - that will do the job
 // Easter eggs for Carl
 // - ^Rick-roll the winner
-// If only 1 or 2 gems can be taken, user can't end turn
 // Have another row to show total purchasing power
 // TODO: Make magnification-on-hover optional (need to build a menu...)
 
@@ -69,7 +66,7 @@ resetTurnButton.addEventListener("click", resetTurnHandler); // Should never be 
 initiateNotifications();
 function initiateNotifications() {
   if (!Notification) {
-    alert("Desktop notifications not available in your browser. Try Chrome, Edge, or FireFox."); //if browser is not compatible this will occur
+    alert("Desktop notifications not available in your browser. Try Chrome, Edge, or FireFox."); // If browser is not compatible this will occur
     return;
   }
   if (Notification.permission !== "granted") {
@@ -553,12 +550,14 @@ function boardGemClickHandler(event) {
       } else if (boardCount < 3) {
         alert("You cannot take 2 gems of the same color unless there were 4 in stack at the start of your turn.");
         return;
-      } else if (takenGemColor.length == 1) {
+      } // This is where things actually start to happen...
+      else if (takenGemColor.length == 1) {
         actionIndex = 0; // If legally taking 2 of 1 color, disable further actions
       }
     }
     let playerCountContainer = mainPlayerContainer.getElementsByClassName("player-gem-count")[gemIndex - 1];
     let negativeReturn = negativeGemColor.indexOf(gemColor);
+    // If player takes a gem that they previously returned this turn
     if (negativeReturn >= 0) {
       negativeGemColor.splice(negativeReturn, 1);
       let duplicateNegativeReturn = negativeGemColor.indexOf(gemColor);
@@ -706,6 +705,10 @@ function playerGemClickHandler(event) {
       gameBoardGems[gemIndex].classList.remove("acted-on");
     }
     actionIndex = 1;
+    if (takenGemColor.length == 0) {
+      // Don't let the player end turn if the net gem take was nothing
+      actionStarted = "none";
+    }
   } else {
     negativeGemColor.push(gemColor);
     clickedContainer.classList.add("negative-gem");
@@ -905,25 +908,20 @@ function resetTurnHandler() {
   dealCards();
   updatePlayer(activePlayer, 0);
   gemCheck();
-  let elementsActedOn = document.getElementsByClassName("acted-on").length;
-  for (var i = 0; i < elementsActedOn; i++) {
-    document.getElementsByClassName("acted-on")[0].classList.remove("acted-on");
-  }
-  let ignoredElements = document.getElementsByClassName("ignore-me").length;
-  for (var i = 0; i < ignoredElements; i++) {
-    document.getElementsByClassName("ignore-me")[0].classList.remove("ignore-me");
-  }
-  let embiggenElements = document.getElementsByClassName("embiggen").length;
-  for (var i = 0; i < embiggenElements; i++) {
-    document.getElementsByClassName("embiggen")[0].classList.remove("embiggen");
-  }
-  let emphasizedElements = document.getElementsByClassName("emphasize").length;
-  for (var i = 0; i < emphasizedElements; i++) {
-    document.getElementsByClassName("emphasize")[0].classList.remove("emphasize");
-  }
+  removeClass(["acted-on", "ignore-me", "embiggen", "emphasize", "negative-gem"]);
   document.getElementById("player-notice").innerText = "";
   startActionItems();
   resetEventListeners();
+}
+
+function removeClass(classNames) {
+  for (var i = 0; i < classNames.length; i++) {
+    let classToRemove = classNames[i];
+    let elementCount = document.getElementsByClassName(classToRemove).length;
+    for (var j = 0; j < elementCount; j++) {
+      document.getElementsByClassName(classToRemove)[0].classList.remove(classToRemove);
+    }
+  }
 }
 
 function getPData() {
@@ -949,15 +947,16 @@ function endTurnHandler() {
     alert("Please take your turn");
     return;
   }
-  if (actionIndex != 0) {
-    alert(`Please complete your "${actionStarted}" action`);
-    return;
-  }
-  // Enforce 10 gem max
   totalPlayerGems = 0;
   for (var i in pData.gems) {
     totalPlayerGems += pData.gems[i];
   }
+  // Notify player if turn wasn't completed, allowing for ending turn with less than full turn if player has 10 gems.
+  if (actionIndex == 1 && (totalPlayerGems < 10 || actionStarted != "gem")) {
+    alert(`Please complete your "${actionStarted}" action`);
+    return;
+  }
+  // Enforce 10 gem max
   if (totalPlayerGems > 10) {
     alert(`You currently have ${totalPlayerGems} gems. You may not have more than 10, including Gold gems.
     
@@ -966,6 +965,7 @@ Please return ${totalPlayerGems - 10} gem(s) by clicking on the image of the gem
 Gold gems can only be returned if if you took them this turn by clicking the "Reset Turn" button.`);
     return;
   }
+
   round = parseInt(gameData.save_id.toString().slice(0, -2));
   if (inTurnPlayer == numberOfPlayers) {
     round += 1;
@@ -1008,10 +1008,7 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   playerDiv.id = "in-turn-player";
   document.getElementById("turn-marker").innerText = `${body[`player_${inTurnPlayer}`].name}'s Turn`;
   document.getElementById("round-counter").innerText = `Round: ${round}`;
-  let elementsActedOn = document.getElementsByClassName("acted-on").length;
-  for (var i = 0; i < elementsActedOn; i++) {
-    document.getElementsByClassName("acted-on")[0].classList.remove("acted-on");
-  }
+  removeClass(["acted-on", "negative-gem"]);
   document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
   stopActionItems();
   dealCards();
