@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Splendor | Game Over</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Montserrat&display=swap" rel="stylesheet" />
+    <script src="gameOver.js" type="module" defer></script>
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <header class="header"></header>
+    <div class="nav nav-small">
+      <a href="index">Home</a>
+      <a href="newGame">New Game</a>
+      <a href="savedGames">Saved Games</a>
+    </div>
+    <h1>Game Over!</h1>
+    <div class="title-container">
+      <h1 id="winner-announcement">Player X has won the game</h1>
+    </div>
+    <ul id="scores-container"></ul>
+  </body>
+</html>

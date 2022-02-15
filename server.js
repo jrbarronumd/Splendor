@@ -81,8 +81,9 @@ io.on("connection", (socket) => {
 
   socket.on("new-row", async (newRow) => {
     const gameId = newRow.game_id;
-    const players = newRow.players;
     const saveId = newRow.save_id;
+    const players = newRow.players;
+    const gameInfo = JSON.stringify(newRow.game_info);
     const nobles = JSON.stringify(newRow.nobles);
     const blueDeck = JSON.stringify(newRow.blue_deck);
     const yellowDeck = JSON.stringify(newRow.yellow_deck);
@@ -92,7 +93,21 @@ io.on("connection", (socket) => {
     const p2 = JSON.stringify(newRow.player_2);
     const p3 = JSON.stringify(newRow.player_3);
     const p4 = JSON.stringify(newRow.player_4);
-    const result = await dbOperations.addGameRow(gameId, players, saveId, nobles, blueDeck, yellowDeck, greenDeck, boardGems, p1, p2, p3, p4);
+    const result = await dbOperations.addGameRow(
+      gameId,
+      saveId,
+      players,
+      gameInfo,
+      nobles,
+      blueDeck,
+      yellowDeck,
+      greenDeck,
+      boardGems,
+      p1,
+      p2,
+      p3,
+      p4
+    );
     // Send data to other clients in same game (unless this was the game creation row)
     if (saveId != "1.1") {
       socket.to(gameId).emit("new-row-result", newRow);
@@ -100,5 +115,17 @@ io.on("connection", (socket) => {
     } else {
       console.log("New game created. Game ID: " + gameId);
     }
+  });
+
+  socket.on("game-over", async (gameId) => {
+    socket.join(gameId);
+    socket.join("game-over");
+    const sockets = await io.fetchSockets();
+    const thisGameSockets = await io.in(gameId).fetchSockets();
+    let result = await dbOperations.getGame(gameId);
+    socket.emit("game-data", result[0]);
+    console.log(
+      `User ${socket.id} is in the Game Over page for game ID: ${gameId}. ${thisGameSockets.length} socket(s) in game, ${sockets.length} total connection(s)`
+    );
   });
 });

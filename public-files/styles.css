@@ -210,6 +210,7 @@ h1 {
 
 .date-created {
   margin-left: 20px;
+  font-size: 0.8em;
 }
 
 /* New styles for main game******************************************************/
@@ -455,6 +456,32 @@ h1 {
   font-size: calc(var(--block-size) / 6);
 }
 
+/* Game over page ****************************************************** */
+.title-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1em;
+}
+
+#winner-announcement {
+  padding: 10px;
+  width: max-content;
+  border-radius: 10px;
+  align-self: center;
+}
+
+#scores-container {
+  font-size: 1.5em;
+  margin-left: 2em;
+}
+
+.player-end {
+  width: max-content;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
 /* Game play visualizations ******************************************** */
 #in-turn-player {
   border: solid 5px hsl(0, 0%, 85%);
@@ -512,6 +539,15 @@ h1 {
 .emphasize img:hover {
   width: calc(var(--block-size) - 2px);
   border: solid 2px yellow;
+}
+
+.winning {
+  font-size: 1.4em;
+  padding: 7px;
+  border: solid 2px red;
+  border-radius: 10px;
+  background-color: hsla(0, 0%, 53%, 0.3);
+  /* color: red; */
 }
 
 /* Anything that will override game play visualizations *********************/

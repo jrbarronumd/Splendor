@@ -2,29 +2,31 @@ import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
 // TODO: Redirect users to new game page or saved games or home if trying to load a game that doesn't exist.
-// Also make it obvious when someone eclipses 15 points
-// What happens when someone wins?!?
-// Need a game log
+// Don't let any actions be taken after the game should be over.
+// Reset turn doesn't take away from purchased cards dropdown.  Board cards still shows the new card in place of the taken/returned one.
+// have "tokens" label in player containers show token count: Tokens (6)
+// Have another row to show total purchasing power
 // Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
 // Delete games from db when complete, or at least all but one row.
-// Add rounds to saved games
+// Show if a game is over on the saved games page.  Maybe wait until db changes are made to delete the rest of the game data and list finished games below games in process.
 // Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
 // Add ability to cancel when in the middle of reserving a card/noble, or buying a reserved cards?
 // - ^Keep reset turn illuminated - that will do the job
 // Easter eggs for Carl
 // - ^Rick-roll the winner
-// Have another row to show total purchasing power
+// Need a game log
+// Add rounds to saved games - "Date created dd/mm/yyyy, Round XX, dd/mm/yyyy" - is this really that helpful?  Major server-side implementation effort
 // TODO: Make magnification-on-hover optional (need to build a menu...)
 
 var numberOfPlayers,
   gameData,
+  gameInfo,
   resetData,
   resetState,
   previousPlayer,
   previousPosition,
   pData,
-  gameOptions,
   boardGems,
   totalPlayerGems,
   p1Data,
@@ -35,6 +37,8 @@ var numberOfPlayers,
 var takenGemColor = [];
 var negativeGemColor = [];
 let boardCardsArray = [];
+let winnerArray = [];
+let allPlayerScores = [0, 0, 0, 0]; // In turn order, player 1 first. Extra zeros should be no problem, but could be removed in initial load.
 var allPlayers = {};
 var playerOrder = [0, 1, 2, 3, 4, 1, 2, 3];
 var myQueryString = new URLSearchParams(window.location.search);
@@ -45,6 +49,8 @@ var gemOrder = ["gold", "white", "blue", "green", "red", "black"];
 var actionIndex = 1; // 0 will stop any actions
 var actionStarted = "none"; // Possibilities: none, gem, card, etc...
 var nobleClaimed = 0; // Change to 1 on reservation to ensure only one per turn
+let winningScore = 1;
+let notifyWinner = true;
 
 var noblesDeck = new NoblesDeck();
 var blueDeck = new CardsDeck();
@@ -160,7 +166,7 @@ function initialLoad(data) {
   pData = JSON.parse(gameData[`player_${activePlayer}`]);
   boardGems = JSON.parse(gameData.board_gems);
   inTurnPlayer = parseInt(gameData.save_id.toString().slice(-1));
-  gameOptions = JSON.parse(gameData.game_options);
+  gameInfo = JSON.parse(gameData.game_info);
   noblesDeck.nobles = JSON.parse(gameData.nobles);
   blueDeck.cards = JSON.parse(gameData.blue_deck);
   yellowDeck.cards = JSON.parse(gameData.yellow_deck);
@@ -179,6 +185,11 @@ socket.on("new-row-result", (newData) => {
   previousPlayer = inTurnPlayer;
   previousPosition = playerOrder.indexOf(previousPlayer);
   newRowUpdate(newData);
+  // If game is over, go to game over page
+  if (inTurnPlayer == 1 && gameInfo.winner.length > 0) {
+    let gameLink = "game-over" + "?game_id=" + gameId + "&p=" + activePlayer;
+    window.location = gameLink;
+  }
   document.getElementById("turn-marker").innerText = `${gameData[`player_${inTurnPlayer}`].name}'s Turn`;
   document.getElementById("round-counter").innerText = `Round: ${round}`;
   // Clear outlined player container, and move to next player
@@ -189,6 +200,7 @@ socket.on("new-row-result", (newData) => {
   dealGems();
   dealCards();
   updatePlayer(previousPlayer, previousPosition);
+  checkForWinner();
   if (inTurnPlayer == activePlayer) {
     startActionItems();
     new Notification("Time To Play!", { body: "It's your turn" });
@@ -204,7 +216,7 @@ function newRowUpdate(data) {
   pData = gameData[`player_${activePlayer}`];
   boardGems = gameData.board_gems;
   inTurnPlayer = parseInt(gameData.save_id.toString().slice(-1));
-  gameOptions = gameData.game_options;
+  gameInfo = gameData.game_info;
   noblesDeck.nobles = gameData.nobles;
   blueDeck.cards = gameData.blue_deck;
   yellowDeck.cards = gameData.yellow_deck;
@@ -235,12 +247,14 @@ function dealNobles() {
     gameBoardNobles.innerHTML += newDivContents;
   }
 }
+
 function dealGems() {
   // using array items as JSON keys to pull gem values
   for (var i = 0; i < gemOrder.length; i++) {
     gameBoardGems[i].getElementsByTagName("span")[0].innerText = boardGems[gemOrder[i]];
   }
 }
+
 function dealCards() {
   boardCardsArray = [blueDeck.cards.slice(0, 4), yellowDeck.cards.slice(0, 4), greenDeck.cards.slice(0, 4)].flat();
   for (var i = 0; i < 12; i++) {
@@ -277,6 +291,13 @@ function setTable() {
   }
   console.log(`Active Player: ${pData.name}`);
   resetEventListeners();
+  checkForWinner();
+  // If game is over, create link to game over page (don't force user to that page in initial load)
+  if (inTurnPlayer == 1 && winnerArray.length > 0) {
+    let gameLink = "game-over" + "?game_id=" + gameId + "&p=" + activePlayer;
+    let navContainer = document.getElementsByClassName("nav")[0];
+    navContainer.innerHTML += `<a href=${gameLink}>Game Over</a>`;
+  }
 }
 
 function updatePlayer(player, playerPosition) {
@@ -286,6 +307,7 @@ function updatePlayer(player, playerPosition) {
   playerDiv.getElementsByClassName("player-name")[0].innerText = playerName;
   let playerScore = playerData.points;
   playerDiv.getElementsByClassName("player-score")[0].innerText = `Score: ${playerScore}`;
+  allPlayerScores[player - 1] = playerScore;
   let nobleContainer = playerDiv.getElementsByClassName("player-noble")[0];
   let playerNobles = playerData.nobles;
   let playerGems = playerData.gems;
@@ -497,6 +519,8 @@ function buyCard(purchasedCard) {
   purchaseContainer.parentElement.getElementsByTagName("summary")[0].innerText = `Purchased Cards (${pData.purchased_cards.length})`;
   let playerScoreContainer = mainPlayerContainer.getElementsByClassName("player-score")[0];
   playerScoreContainer.innerText = `Score: ${pData.points}`;
+  allPlayerScores[activePlayer - 1] = pData.points;
+  checkForWinner();
   pData.bonus[purchasedCard.color] += 1;
   let bonusGemContainer = mainPlayerContainer.getElementsByClassName("player-gem-container")[gemOrder.indexOf(purchasedCard.color) - 1];
   bonusGemContainer.getElementsByClassName("player-bonus")[0].innerText = `(${pData.bonus[purchasedCard.color]})`;
@@ -828,6 +852,8 @@ function selectNoble(event) {
   pData.nobles.push(claimedNoble); // Add noble to player's assets
   pData.points += 3;
   playerScoreContainer.innerText = `Score: ${pData.points}`;
+  allPlayerScores[activePlayer - 1] = pData.points;
+  checkForWinner();
   mainPlayerContainer.getElementsByClassName("player-noble")[0].innerHTML += `<img src="images\\nobles\\nobles-${claimedNoble.nobleId}.jpg" />`;
   nobleClaimed = 1;
   document.getElementById("player-notice").innerText = "";
@@ -907,6 +933,7 @@ function resetTurnHandler() {
   dealGems();
   dealCards();
   updatePlayer(activePlayer, 0);
+  checkForWinner();
   gemCheck();
   removeClass(["acted-on", "ignore-me", "embiggen", "emphasize", "negative-gem"]);
   document.getElementById("player-notice").innerText = "";
@@ -921,6 +948,57 @@ function removeClass(classNames) {
     for (var j = 0; j < elementCount; j++) {
       document.getElementsByClassName(classToRemove)[0].classList.remove(classToRemove);
     }
+  }
+}
+
+function checkForWinner() {
+  removeClass(["winning"]);
+  let highScore = Math.max(...allPlayerScores);
+  // If no one has a winning score, do nothing else.
+  if (highScore < winningScore) {
+    return;
+  }
+  // Update the allPlayers object so any actions taken this turn will be used in this function
+  getPData();
+  allPlayers = { p1Data, p2Data, p3Data, p4Data };
+  winnerArray = [];
+  allPlayerScores.forEach((score, player) => {
+    if (score == highScore) {
+      winnerArray.push(player + 1);
+    }
+  });
+  // If there is a tie score, eliminate players with more cards
+  if (winnerArray.length > 1) {
+    let lowestCards = allPlayers[`p${winnerArray[0]}Data`].purchased_cards.length;
+    let i = 0;
+    while (i < winnerArray.length) {
+      let totalCards = allPlayers[`p${winnerArray[i]}Data`].purchased_cards.length;
+      if (totalCards < lowestCards) {
+        lowestCards = totalCards;
+        i = 0;
+      } else if (totalCards > lowestCards) {
+        winnerArray.splice(i, 1);
+        i = 0;
+      } else i++;
+    }
+  }
+  // Emphasize the winner's score on the game table
+  winnerArray.forEach((winner) => {
+    let winnerPosition = playerOrder.indexOf(winner);
+    document.getElementsByClassName("player-score")[winnerPosition].classList.add("winning");
+  });
+  // If still tied, there are no more tie-breakers
+  if (winnerArray.length == 1 && notifyWinner && inTurnPlayer != 1) {
+    notifyWinner = false; // So the notification won't be repeated
+    let winnerName = allPlayers[`p${winnerArray[0]}Data`].name;
+    alert(`${winnerName} has ${highScore} points.  The game will end after this round.`);
+  } else if (winnerArray.length > 1) {
+    // There's actually a tie
+    alert(
+      `There is currently a ${winnerArray.length}-way tie at ${highScore} points (even after tie-breakers). Someone break the tie!!! 
+      
+The game will end after this round.`
+    );
   }
 }
 
@@ -970,6 +1048,8 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   if (inTurnPlayer == numberOfPlayers) {
     round += 1;
     inTurnPlayer = 1;
+    // Update winner info
+    gameInfo.winner = winnerArray;
   } else {
     inTurnPlayer += 1;
   }
@@ -979,7 +1059,7 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
     game_id: gameId,
     players: numberOfPlayers,
     save_id: `${round}.${inTurnPlayer}`,
-    game_options: gameOptions,
+    game_info: gameInfo,
     nobles: noblesDeck.nobles,
     blue_deck: blueDeck.cards,
     yellow_deck: yellowDeck.cards,
@@ -1002,6 +1082,11 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   actionStarted = "none";
   nobleClaimed = 0;
   takenGemColor = [];
+  // If game is over, go to game over page
+  if (inTurnPlayer == 1 && winnerArray.length > 0) {
+    let gameLink = "game-over" + "?game_id=" + gameId + "&p=" + activePlayer;
+    window.location = gameLink;
+  }
   // Clear outlined player container, and move to next player
   document.getElementById("in-turn-player").removeAttribute("id");
   let playerDiv = document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)];

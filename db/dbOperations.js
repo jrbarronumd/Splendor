@@ -8,7 +8,7 @@ async function createGamesTable() {
         table.text("game_id");
         table.real("save_id");
         table.integer("players");
-        table.text("game_options");
+        table.text("game_info");
         table.text("nobles");
         table.text("blue_deck");
         table.text("yellow_deck");
@@ -29,11 +29,12 @@ function checkForGameId(gameId) {
   return knex("games").select("players").where("game_id", gameId);
 }
 
-function addGameRow(gameId, players, saveId, nobles, blueDeck, yellowDeck, greenDeck, boardGems, p1, p2, p3, p4) {
+function addGameRow(gameId, saveId, players, gameInfo, nobles, blueDeck, yellowDeck, greenDeck, boardGems, p1, p2, p3, p4) {
   return knex("games").insert({
     game_id: gameId,
-    players: players,
     save_id: saveId,
+    players: players,
+    game_info: gameInfo,
     nobles: nobles,
     blue_deck: blueDeck,
     yellow_deck: yellowDeck,

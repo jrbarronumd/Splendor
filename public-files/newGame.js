@@ -186,8 +186,9 @@ function createGame(event) {
   var body = {
     game_id: gameId,
     players: numberOfPlayers,
+    game_info: {},
     save_id: "1.1",
-    game_options: {},
+    game_info: {},
     nobles: noblesDeck.nobles,
     blue_deck: blueDeck.cards,
     yellow_deck: yellowDeck.cards,
