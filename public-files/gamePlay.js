@@ -49,7 +49,7 @@ var gemOrder = ["gold", "white", "blue", "green", "red", "black"];
 var actionIndex = 1; // 0 will stop any actions
 var actionStarted = "none"; // Possibilities: none, gem, card, etc...
 var nobleClaimed = 0; // Change to 1 on reservation to ensure only one per turn
-let winningScore = 1;
+let winningScore = 15;
 let notifyWinner = true;
 
 var noblesDeck = new NoblesDeck();
