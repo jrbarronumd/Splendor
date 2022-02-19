@@ -1,7 +1,5 @@
 // Create New Game
 
-// TODO: add solo mode as option.  different logic to employ, probably?
-
 import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 

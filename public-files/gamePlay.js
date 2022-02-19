@@ -2,21 +2,22 @@ import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
 // TODO: Redirect users to new game page or saved games or home if trying to load a game that doesn't exist.
+// Show if a game is over on the saved games page.  Maybe wait until db changes are made to delete the rest of the game data and list finished games below games in process.
+// A long player name will kill the player container display.
 // Don't let any actions be taken after the game should be over.
-// Reset turn doesn't take away from purchased cards dropdown.  Board cards still shows the new card in place of the taken/returned one.
 // have "tokens" label in player containers show token count: Tokens (6)
 // Have another row to show total purchasing power
 // Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
 // Delete games from db when complete, or at least all but one row.
-// Show if a game is over on the saved games page.  Maybe wait until db changes are made to delete the rest of the game data and list finished games below games in process.
 // Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
-// Add ability to cancel when in the middle of reserving a card/noble, or buying a reserved cards?
-// - ^Keep reset turn illuminated - that will do the job
 // Easter eggs for Carl
 // - ^Rick-roll the winner
-// Need a game log
+// Add ability to cancel when in the middle of reserving a card/noble, or buying a reserved cards?
+// - ^Keep reset turn illuminated - that will do the job
+// Add solo mode as option.  different logic to employ, probably?
 // Add rounds to saved games - "Date created dd/mm/yyyy, Round XX, dd/mm/yyyy" - is this really that helpful?  Major server-side implementation effort
+// Need a game log
 // TODO: Make magnification-on-hover optional (need to build a menu...)
 
 var numberOfPlayers,
@@ -181,7 +182,6 @@ function initialLoad(data) {
 // This will be executed every time another player finishes a turn
 socket.on("new-row-result", (newData) => {
   resetState = "update";
-  resetData = JSON.parse(JSON.stringify(newData)); // To create a copy of the data to be used for reset
   previousPlayer = inTurnPlayer;
   previousPosition = playerOrder.indexOf(previousPlayer);
   newRowUpdate(newData);
@@ -211,6 +211,7 @@ socket.on("new-row-result", (newData) => {
 });
 
 function newRowUpdate(data) {
+  resetData = JSON.parse(JSON.stringify(data)); // To create a copy of the data to be used for reset
   gameData = data;
   round = parseInt(gameData.save_id.toString().slice(0, -2));
   pData = gameData[`player_${activePlayer}`];
@@ -292,7 +293,7 @@ function setTable() {
   console.log(`Active Player: ${pData.name}`);
   resetEventListeners();
   checkForWinner();
-  // If game is over, create link to game over page (don't force user to that page in initial load)
+  // If game is over, create link to game over page (don't force user to that page in initial load). This is the only way to stay on the page if game is over.
   if (inTurnPlayer == 1 && winnerArray.length > 0) {
     let gameLink = "game-over" + "?game_id=" + gameId + "&p=" + activePlayer;
     let navContainer = document.getElementsByClassName("nav")[0];
@@ -916,6 +917,7 @@ function resetTurnHandler() {
   if (activePlayer != inTurnPlayer) {
     return;
   }
+  // Must differentiate between the first turn since reload and later ones - just like all row updates.
   if (resetState == "update") {
     newRowUpdate(resetData);
   } else if (resetState == "initial") {
@@ -939,6 +941,19 @@ function resetTurnHandler() {
   document.getElementById("player-notice").innerText = "";
   startActionItems();
   resetEventListeners();
+  // Remove purchased card and div if necessary
+  let playerCards = pData.purchased_cards;
+  let purchasedCardsContainer = mainPlayerContainer.getElementsByClassName("purchased-card-container")[0];
+  if (purchasedCardsContainer) {
+    if (playerCards.length == 0) {
+      purchasedCardsContainer.parentElement.remove();
+    } else {
+      let purchasedCardCount = purchasedCardsContainer.getElementsByTagName("img").length;
+      for (let i = playerCards.length; i < purchasedCardCount; i++) {
+        purchasedCardsContainer.getElementsByTagName("img")[purchasedCardCount - 1].remove();
+      }
+    }
+  }
 }
 
 function removeClass(classNames) {
