@@ -6,7 +6,6 @@ import CardsDeck from "./decks/cardDeck.js";
 // A long player name will kill the player container display.
 // Don't let any actions be taken after the game should be over.
 // have "tokens" label in player containers show token count: Tokens (6)
-// Have another row to show total purchasing power
 // Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
 // Delete games from db when complete, or at least all but one row.
 // Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
@@ -16,7 +15,6 @@ import CardsDeck from "./decks/cardDeck.js";
 // Add ability to cancel when in the middle of reserving a card/noble, or buying a reserved cards?
 // - ^Keep reset turn illuminated - that will do the job
 // Add solo mode as option.  different logic to employ, probably?
-// Add rounds to saved games - "Date created dd/mm/yyyy, Round XX, dd/mm/yyyy" - is this really that helpful?  Major server-side implementation effort
 // Need a game log
 // TODO: Make magnification-on-hover optional (need to build a menu...)
 
@@ -335,6 +333,7 @@ function updatePlayer(player, playerPosition) {
   for (let j = 1; j <= 5; j++) {
     playerDiv.getElementsByClassName("player-gem-count")[j - 1].innerText = playerGems[gemOrder[j]]; //gold is first, so it is just skipped
     playerDiv.getElementsByClassName("player-bonus")[j - 1].innerText = `(${playerBonus[gemOrder[j]]})`;
+    playerDiv.getElementsByClassName("player-total")[j - 1].innerText = playerGems[gemOrder[j]] + playerBonus[gemOrder[j]];
   }
   // Populate reserved/purchased cards if present
   let dropDownContainer = playerDiv.getElementsByClassName("player-drop-down")[0];
@@ -492,6 +491,7 @@ function buyCard(purchasedCard) {
     pData.gems[gemOrder[i]] -= cost;
     boardGems[gemOrder[i]] += cost;
     mainPlayerContainer.getElementsByClassName("player-gem-count")[i - 1].innerText = pData.gems[gemOrder[i]];
+    mainPlayerContainer.getElementsByClassName("player-total")[i - 1].innerText = pData.gems[gemOrder[i]] + pData.bonus[gemOrder[i]];
   }
   // Resolve any spent gold gems in pData and on game table
   for (var i = surplus; i < pData.gems.gold; i++) {
@@ -523,6 +523,9 @@ function buyCard(purchasedCard) {
   allPlayerScores[activePlayer - 1] = pData.points;
   checkForWinner();
   pData.bonus[purchasedCard.color] += 1;
+  // Update total purchasing power for the color of the purchased card
+  let totalGemContainer = mainPlayerContainer.getElementsByClassName("player-total")[gemOrder.indexOf(purchasedCard.color) - 1];
+  totalGemContainer.innerText = pData.gems[purchasedCard.color] + pData.bonus[purchasedCard.color];
   let bonusGemContainer = mainPlayerContainer.getElementsByClassName("player-gem-container")[gemOrder.indexOf(purchasedCard.color) - 1];
   bonusGemContainer.getElementsByClassName("player-bonus")[0].innerText = `(${pData.bonus[purchasedCard.color]})`;
 }
@@ -600,6 +603,8 @@ function boardGemClickHandler(event) {
     pData.gems[gemColor] += 1;
     playerGemCount += 1;
     playerCountContainer.innerText = playerGemCount;
+    playerCountContainer.parentElement.getElementsByClassName("player-total")[0].innerText = playerGemCount + pData.bonus[gemColor];
+    playerCountContainer;
     if (takenGemColor.length == 3) {
       actionIndex = 0; // Turn complete
     }
@@ -740,6 +745,7 @@ function playerGemClickHandler(event) {
   }
   pData.gems[gemColor] -= 1;
   playerCountContainer.innerText -= 1;
+  playerCountContainer.parentElement.getElementsByClassName("player-total")[0].innerText = pData.gems[gemColor] + pData.bonus[gemColor];
   boardGems[gemColor] += 1;
   boardCountContainer.innerText = boardCount + 1;
   startActionItems();

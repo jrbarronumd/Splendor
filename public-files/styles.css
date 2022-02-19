@@ -448,11 +448,13 @@ h1 {
 
 .player-gem-row img {
   width: calc(var(--block-size) / 2);
+  height: calc(var(--block-size) / 2);
   border-radius: calc(var(--block-size) / 2);
 }
 
 .player-gem-row > div {
   display: flex;
+  align-items: center;
   font-size: calc(var(--block-size) / 6);
 }
 
