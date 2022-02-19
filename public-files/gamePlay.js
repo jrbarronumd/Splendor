@@ -316,7 +316,7 @@ function setTable() {
 function delayTasks(currentPlayerNum, i) {
   setTimeout(function () {
     updatePlayer(currentPlayerNum, i);
-  }, 1000 * (i + 1));
+  }, 200 * (i + 1));
 }
 
 function updatePlayer(player, playerPosition) {
