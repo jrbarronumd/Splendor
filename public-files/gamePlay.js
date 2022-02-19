@@ -1,8 +1,7 @@
 import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
-// TODO: Redirect users to new game page or saved games or home if trying to load a game that doesn't exist.
-// Show if a game is over on the saved games page.  Maybe wait until db changes are made to delete the rest of the game data and list finished games below games in process.
+// TODO: Show if a game is over on the saved games page.  Maybe wait until db changes are made to delete the rest of the game data and list finished games below games in process.
 // A long player name will kill the player container display.
 // Don't let any actions be taken after the game should be over.
 // have "tokens" label in player containers show token count: Tokens (6)
@@ -42,6 +41,7 @@ var allPlayers = {};
 var playerOrder = [0, 1, 2, 3, 4, 1, 2, 3];
 var myQueryString = new URLSearchParams(window.location.search);
 var gameId = myQueryString.get("game_id");
+if (!gameId || !myQueryString.get("p")) window.location = "index"; // Go to home if no "gameID=" or "p=" in query string
 var activePlayer = parseInt(myQueryString.get("p").slice(-1));
 var inTurnPlayer = 0;
 var gemOrder = ["gold", "white", "blue", "green", "red", "black"];
@@ -144,6 +144,13 @@ socket.on("connected", (result) => {
 // Server pushed gameData after connection.  This is the initial game-load ONLY.
 socket.once("game-data", (respData) => {
   resetState = "initial"; // Will change to "update" after any new data is pushed.
+  // redirect to home page if invalid game ID
+  if (!respData) {
+    console.log("invalid game ID");
+    alert("Invalid game ID");
+    window.location = "index";
+    return;
+  }
   resetData = respData;
   initialLoad(respData);
   dealNobles();
@@ -156,6 +163,12 @@ socket.once("game-data", (respData) => {
     document.getElementsByClassName("action-buttons")[0].classList.remove("invisible");
   } else {
     document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
+  }
+  // If game is over, kill event listeners and action items
+  if (inTurnPlayer == 1 && gameInfo.winner.length > 0) {
+    resetTurnButton.removeEventListener("click", resetTurnHandler);
+    removeEventListeners();
+    stopActionItems();
   }
 });
 

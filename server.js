@@ -51,6 +51,10 @@ io.on("connection", (socket) => {
     const thisGameSockets = await io.in(gameId).fetchSockets();
     let result = await dbOperations.getGame(gameId);
     socket.emit("game-data", result[0]);
+    if (result.length == 0) {
+      console.log(`invalid game lobby request for game ${gameId} by User ${socket.id}`);
+      return;
+    }
     console.log(
       `User ${socket.id} is in the lobby for game ID: ${gameId}. ${thisGameSockets.length} socket(s) in game, ${sockets.length} total connection(s)`
     );
@@ -62,6 +66,10 @@ io.on("connection", (socket) => {
     const thisGameSockets = await io.in(gameId).fetchSockets();
     let result = await dbOperations.getGame(gameId);
     socket.emit("game-data", result[0]);
+    if (result.length == 0) {
+      console.log(`invalid game request for game ${gameId} by User ${socket.id}`);
+      return;
+    }
     const playerName = JSON.parse(result[0][`player_${playerNum}`]).name;
     console.log(
       `User ${socket.id} joined game ID: ${gameId} as player ${playerNum} (${playerName}). ${thisGameSockets.length} socket(s) in game, ${sockets.length} total connection(s)`
