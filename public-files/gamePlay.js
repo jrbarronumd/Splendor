@@ -3,7 +3,6 @@ import CardsDeck from "./decks/cardDeck.js";
 
 // TODO: Show if a game is over on the saved games page.  Maybe wait until db changes are made to delete the rest of the game data and list finished games below games in process.
 // A long player name will kill the player container display.
-// Don't let any actions be taken after the game should be over.
 // have "tokens" label in player containers show token count: Tokens (6)
 // Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
 // Delete games from db when complete, or at least all but one row.
@@ -14,6 +13,7 @@ import CardsDeck from "./decks/cardDeck.js";
 // Add ability to cancel when in the middle of reserving a card/noble, or buying a reserved cards?
 // - ^Keep reset turn illuminated - that will do the job
 // Add solo mode as option.  different logic to employ, probably?
+// Add option to change winning score
 // Need a game log
 // TODO: Make magnification-on-hover optional (need to build a menu...)
 
@@ -297,7 +297,7 @@ function setTable() {
   // Player divs will be populated by turn order starting with the active player at the top
   for (var i = 0; i < numberOfPlayers; i++) {
     let currentPlayerNum = playerOrder[i];
-    updatePlayer(currentPlayerNum, i);
+    delayTasks(currentPlayerNum, i);
     let playerDiv = document.getElementsByClassName("player-container")[i];
     playerDiv.classList.replace(`player-${i + 1}`, `player-${playerOrder[i]}`);
   }
@@ -310,6 +310,13 @@ function setTable() {
     let navContainer = document.getElementsByClassName("nav")[0];
     navContainer.innerHTML += `<a href=${gameLink}>Game Over</a>`;
   }
+}
+
+// Add delay to player update so hopefully there won't be errors in the server when there are a lot of cards for each player.
+function delayTasks(currentPlayerNum, i) {
+  setTimeout(function () {
+    updatePlayer(currentPlayerNum, i);
+  }, 1000 * (i + 1) * 0);
 }
 
 function updatePlayer(player, playerPosition) {

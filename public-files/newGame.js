@@ -186,7 +186,7 @@ function createGame(event) {
     players: numberOfPlayers,
     game_info: {},
     save_id: "1.1",
-    game_info: {},
+    game_info: { winner: [] },
     nobles: noblesDeck.nobles,
     blue_deck: blueDeck.cards,
     yellow_deck: yellowDeck.cards,
