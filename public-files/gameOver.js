@@ -6,7 +6,8 @@ var allPlayers = {};
 let scoreOrder = [];
 let myQueryString = new URLSearchParams(window.location.search);
 var gameId = myQueryString.get("game_id");
-var activePlayer = parseInt(myQueryString.get("p").slice(-1));
+var activePlayer = myQueryString.get("p") || "p0";
+var activePlayer = parseInt(activePlayer.slice(-1));
 
 // As soon as connection is made, join user to the game's socket room, which will initiate game data push
 socket.on("connect", () => {

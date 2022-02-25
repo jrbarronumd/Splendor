@@ -11,7 +11,8 @@ const server = http.createServer(app);
 const io = socket(server);
 const dbOperations = require("./db/dbOperations.js");
 
-dbOperations.createGamesTable();
+dbOperations.createGamesTable("games");
+dbOperations.createGamesTable("finished_games");
 
 // Set static folder, set default extension so .html is not required in url
 // Not sure if the use of 'path.join' in this way is necessary - static("./public-files/") should work ok?
@@ -31,7 +32,7 @@ io.on("connection", (socket) => {
     console.log(`user: ${socket.id} disconnected because ${reason}. ${sockets.length} connection(s) remaining`);
   });
 
-  // Used to verify a unique game name was entered
+  // Verify a unique game name was entered
   socket.on("check-name", async (gameId, callback) => {
     const result = await dbOperations.checkForGameId(gameId);
     callback(result);
@@ -60,11 +61,13 @@ io.on("connection", (socket) => {
     );
   });
 
-  socket.on("game-load", async (gameId, playerNum) => {
+  socket.on("game-load", async (gameId, playerNum, gameStatus) => {
     socket.join(gameId);
     const sockets = await io.fetchSockets();
     const thisGameSockets = await io.in(gameId).fetchSockets();
-    let result = await dbOperations.getGame(gameId);
+    let table = "games";
+    if (gameStatus == "finished") table = "finished_games";
+    let result = await dbOperations.getGame(gameId, table);
     socket.emit("game-data", result[0]);
     if (result.length == 0) {
       console.log(`invalid game request for game ${gameId} by User ${socket.id}`);
@@ -102,6 +105,7 @@ io.on("connection", (socket) => {
     const p3 = JSON.stringify(newRow.player_3);
     const p4 = JSON.stringify(newRow.player_4);
     const result = await dbOperations.addGameRow(
+      "games",
       gameId,
       saveId,
       players,
@@ -116,6 +120,21 @@ io.on("connection", (socket) => {
       p3,
       p4
     );
+    // Delete previous row if save ID if it isn't the first turn of the round (X.1)
+    if (saveId.slice(-1) == "2" || saveId == "1.1") {
+      // Don't delete
+    } else if (saveId.slice(-1) == "1") {
+      // Delete last turn of previous round
+      let round = parseInt(saveId.slice(0, -2)) - 1;
+      let oldSaveId = round + "." + players;
+      const deleteResult = await dbOperations.deleteRow(gameId, oldSaveId);
+    } else {
+      // Delete previous turn
+      let turn = parseInt(saveId.slice(-1)) - 1;
+      let round = saveId.slice(0, -2);
+      let oldSaveId = round + "." + turn;
+      const deleteResult = await dbOperations.deleteRow(gameId, oldSaveId);
+    }
     // Send data to other clients in same game (unless this was the game creation row)
     if (saveId != "1.1") {
       socket.to(gameId).emit("new-row-result", newRow);
@@ -125,12 +144,48 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("end-game", async (gameId) => {
+    const gameData = await dbOperations.getGame(gameId);
+    let finishedGame = gameData[0];
+    const saveId = finishedGame.save_id;
+    const players = finishedGame.players;
+    let gameInfo = JSON.parse(finishedGame.game_info);
+    const nobles = finishedGame.nobles;
+    const blueDeck = finishedGame.blue_deck;
+    const yellowDeck = finishedGame.yellow_deck;
+    const greenDeck = finishedGame.green_deck;
+    const boardGems = finishedGame.board_gems;
+    const p1 = finishedGame.player_1;
+    const p2 = finishedGame.player_2;
+    const p3 = finishedGame.player_3;
+    const p4 = finishedGame.player_4;
+    gameInfo.status = "finished";
+    gameInfo = JSON.stringify(gameInfo);
+    const finished = await dbOperations.addGameRow(
+      "finished_games",
+      gameId,
+      saveId,
+      players,
+      gameInfo,
+      nobles,
+      blueDeck,
+      yellowDeck,
+      greenDeck,
+      boardGems,
+      p1,
+      p2,
+      p3,
+      p4
+    );
+    const deleted = await dbOperations.deleteGame(gameId);
+  });
+
   socket.on("game-over", async (gameId) => {
     socket.join(gameId);
     socket.join("game-over");
     const sockets = await io.fetchSockets();
     const thisGameSockets = await io.in(gameId).fetchSockets();
-    let result = await dbOperations.getGame(gameId);
+    let result = await dbOperations.getGame(gameId, "finished_games");
     socket.emit("game-data", result[0]);
     console.log(
       `User ${socket.id} is in the Game Over page for game ID: ${gameId}. ${thisGameSockets.length} socket(s) in game, ${sockets.length} total connection(s)`

@@ -41,6 +41,7 @@ var allPlayers = {};
 var playerOrder = [0, 1, 2, 3, 4, 1, 2, 3];
 var myQueryString = new URLSearchParams(window.location.search);
 var gameId = myQueryString.get("game_id");
+var gameStatus = myQueryString.get("status") || "active";
 if (!gameId || !myQueryString.get("p")) window.location = "index"; // Go to home if no "gameID=" or "p=" in query string
 var activePlayer = parseInt(myQueryString.get("p").slice(-1));
 var inTurnPlayer = 0;
@@ -133,7 +134,7 @@ const socket = io({
 
 // As soon as connection is made, join user to the game's socket room, which will initiate game data push
 socket.on("connect", () => {
-  socket.emit("game-load", gameId, activePlayer);
+  socket.emit("game-load", gameId, activePlayer, gameStatus);
 });
 
 // When connection is confirmed by server, log socket ID to console
@@ -157,7 +158,7 @@ socket.once("game-data", (respData) => {
   dealGems();
   dealCards();
   setTable();
-  if (inTurnPlayer == activePlayer) {
+  if (inTurnPlayer == activePlayer && gameStatus == "active") {
     startActionItems();
     new Notification("Time To Play!", { body: "It's your turn" });
     document.getElementsByClassName("action-buttons")[0].classList.remove("invisible");
@@ -199,7 +200,11 @@ socket.on("new-row-result", (newData) => {
   // If game is over, go to game over page
   if (inTurnPlayer == 1 && gameInfo.winner.length > 0) {
     let gameLink = "game-over" + "?game_id=" + gameId + "&p=" + activePlayer;
-    window.location = gameLink;
+    setTimeout(function () {
+      window.location = gameLink;
+    }, 5000);
+    document.getElementById("turn-marker").innerText = "Game Over";
+    alert("The game is over.  You will now be redirected to the game summary");
   }
   document.getElementById("turn-marker").innerText = `${gameData[`player_${inTurnPlayer}`].name}'s Turn`;
   document.getElementById("round-counter").innerText = `Round: ${round}`;
@@ -287,7 +292,13 @@ function setTable() {
   playerOrder = playerOrder.filter((x) => x <= numberOfPlayers); // remove any numbers higher than numberOfPlayers
   playerOrder = playerOrder.slice(activePlayer, activePlayer + numberOfPlayers);
   document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)].id = "in-turn-player";
-  document.getElementById("turn-marker").innerText = `${JSON.parse(gameData[`player_${inTurnPlayer}`]).name}'s Turn`;
+  let turnMarkerText = " ";
+  if (gameStatus == "active") {
+    turnMarkerText = `${JSON.parse(gameData[`player_${inTurnPlayer}`]).name}'s Turn`;
+  } else if (gameStatus == "finished") {
+    turnMarkerText = "Game Over!";
+  }
+  document.getElementById("turn-marker").innerText = turnMarkerText;
   round = parseInt(gameData.save_id.toString().slice(0, -2));
   document.getElementById("round-counter").innerText = `Round: ${round}`;
   // First delete the extra player divs (I think easier than starting with 2)
@@ -297,6 +308,10 @@ function setTable() {
   // Player divs will be populated by turn order starting with the active player at the top
   for (var i = 0; i < numberOfPlayers; i++) {
     let currentPlayerNum = playerOrder[i];
+    // Next 3 lines are required to update player scores BEFORE the delay function executes update player
+    let playerData = allPlayers[`p${currentPlayerNum}Data`];
+    let playerScore = playerData.points;
+    allPlayerScores[currentPlayerNum - 1] = playerScore;
     delayTasks(currentPlayerNum, i);
     let playerDiv = document.getElementsByClassName("player-container")[i];
     playerDiv.classList.replace(`player-${i + 1}`, `player-${playerOrder[i]}`);
@@ -1123,19 +1138,24 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   actionStarted = "none";
   nobleClaimed = 0;
   takenGemColor = [];
+  removeClass(["acted-on", "negative-gem"]);
+  document.getElementById("in-turn-player").removeAttribute("id");
+  document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
+  stopActionItems();
   // If game is over, go to game over page
   if (inTurnPlayer == 1 && winnerArray.length > 0) {
+    socket.emit("end-game", gameId);
     let gameLink = "game-over" + "?game_id=" + gameId + "&p=" + activePlayer;
-    window.location = gameLink;
+    setTimeout(function () {
+      window.location = gameLink;
+    }, 5000);
+    document.getElementById("turn-marker").innerText = "Game Over";
+    return;
   }
-  // Clear outlined player container, and move to next player
-  document.getElementById("in-turn-player").removeAttribute("id");
+  // Set up table for next turn
   let playerDiv = document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)];
   playerDiv.id = "in-turn-player";
   document.getElementById("turn-marker").innerText = `${body[`player_${inTurnPlayer}`].name}'s Turn`;
   document.getElementById("round-counter").innerText = `Round: ${round}`;
-  removeClass(["acted-on", "negative-gem"]);
-  document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
-  stopActionItems();
   dealCards();
 }

@@ -1,10 +1,10 @@
 const knex = require("./knex.js");
 
-async function createGamesTable() {
-  await knex.schema.hasTable("games").then(function (exists) {
+async function createGamesTable(tableName) {
+  await knex.schema.hasTable(tableName).then(function (exists) {
     if (!exists) {
-      console.log(`"games" Table does not exist.  Must be created`);
-      return knex.schema.createTable("games", function (table) {
+      console.log(`"${tableName}" Table does not exist.  Must be created`);
+      return knex.schema.createTable(tableName, function (table) {
         table.text("game_id");
         table.real("save_id");
         table.integer("players");
@@ -21,7 +21,7 @@ async function createGamesTable() {
         table.text("date_created");
       });
     }
-    console.log(`"games" Table exists - no action taken`);
+    console.log(`"${tableName}" Table exists - no action taken`);
   });
 }
 
@@ -29,8 +29,8 @@ function checkForGameId(gameId) {
   return knex("games").select("players").where("game_id", gameId);
 }
 
-function addGameRow(gameId, saveId, players, gameInfo, nobles, blueDeck, yellowDeck, greenDeck, boardGems, p1, p2, p3, p4) {
-  return knex("games").insert({
+function addGameRow(table, gameId, saveId, players, gameInfo, nobles, blueDeck, yellowDeck, greenDeck, boardGems, p1, p2, p3, p4) {
+  return knex(table).insert({
     game_id: gameId,
     save_id: saveId,
     players: players,
@@ -48,12 +48,26 @@ function addGameRow(gameId, saveId, players, gameInfo, nobles, blueDeck, yellowD
   });
 }
 
-function getGame(gameId) {
-  return knex("games").select("*").where("game_id", gameId).orderBy("date_created", "desc").limit(1);
+function getGame(gameId, table = "games") {
+  return knex(table).select("*").where("game_id", gameId).orderBy("date_created", "desc").limit(1);
 }
 
 function getSavedGames() {
   return knex("games").select("game_id", "players", "player_1", "player_2", "player_3", "player_4", "date_created").where("save_id", "1.1");
 }
 
-module.exports = { createGamesTable, addGameRow, getGame, getSavedGames, checkForGameId };
+function deleteRow(gameId, saveId) {
+  return knex("games")
+    .where({
+      game_id: gameId,
+      save_id: saveId,
+    })
+    .del();
+}
+
+function deleteGame(gameId) {
+  console.log(`Game: "${gameId}" moved to the finished games db table.`);
+  return knex("games").where("game_id", gameId).del();
+}
+
+module.exports = { createGamesTable, addGameRow, getGame, getSavedGames, checkForGameId, deleteRow, deleteGame };
