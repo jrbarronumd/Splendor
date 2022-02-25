@@ -46,6 +46,9 @@ function initiatePage() {
   }
   scoreOrder.sort((a, b) => b.score - a.score);
   standardContent();
+  if (activePlayer == 0) activePlayer = gameInfo.winner[0];
+  var gameLink = `game?game_id=${gameId}&p=p${activePlayer}&status=finished`;
+  document.getElementById("view-game-button").children[0].href = gameLink;
 }
 
 function standardContent() {
@@ -60,9 +63,14 @@ function standardContent() {
 }
 
 function singleWinner() {
-  let winnerName = allPlayers[`p${gameInfo.winner[0]}Data`].name;
-  document.getElementById("winner-announcement").innerText = `${winnerName} has won the game`;
-  document.getElementById("winner-announcement").classList.add(`player-${gameInfo.winner[0]}`);
+  let winner = gameInfo.winner[0];
+  if (winner == activePlayer) {
+    document.getElementById("winner-announcement").innerText = `You won the game!`;
+  } else {
+    let winnerName = allPlayers[`p${winner}Data`].name;
+    document.getElementById("winner-announcement").innerText = `${winnerName} has won the game`;
+  }
+  document.getElementById("winner-announcement").classList.add(`player-${winner}`);
 }
 
 function tieGame() {
