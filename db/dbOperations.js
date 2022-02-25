@@ -52,8 +52,13 @@ function getGame(gameId, table = "games") {
   return knex(table).select("*").where("game_id", gameId).orderBy("date_created", "desc").limit(1);
 }
 
-function getSavedGames() {
-  return knex("games").select("game_id", "players", "player_1", "player_2", "player_3", "player_4", "date_created").where("save_id", "1.1");
+function getSavedGames(table) {
+  if (table == "finished_games") {
+    return knex(table).select("game_id", "game_info", "players", "player_1", "player_2", "player_3", "player_4", "date_created");
+  }
+  return knex(table)
+    .select("game_id", "game_info", "players", "player_1", "player_2", "player_3", "player_4", "date_created")
+    .where("save_id", "1.1");
 }
 
 function deleteRow(gameId, saveId) {

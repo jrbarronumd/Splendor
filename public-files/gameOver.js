@@ -29,6 +29,11 @@ socket.on("game-data", (respData) => {
   allPlayers = { p1Data, p2Data, p3Data, p4Data };
   gameInfo = JSON.parse(gameData.game_info);
   numberOfPlayers = JSON.parse(gameData.players);
+  //  In case this is a reconnect, and the list has already rendered.
+  const parent = document.getElementById("scores-container");
+  while (parent.firstChild) {
+    parent.firstChild.remove();
+  }
   initiatePage();
 });
 

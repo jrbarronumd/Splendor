@@ -45,12 +45,16 @@ io.on("connection", (socket) => {
     console.log(`User ${socket.id} is creating a game. ${newGameSockets.length} total user(s) creating games. ${sockets.length} total connection(s)`);
   });
 
-  socket.on("game-lobby", async (gameId) => {
+  socket.on("game-lobby", async (gameId, gameStatus) => {
     socket.join(gameId);
     socket.join("game-lobby");
     const sockets = await io.fetchSockets();
     const thisGameSockets = await io.in(gameId).fetchSockets();
-    let result = await dbOperations.getGame(gameId);
+    var table = "games";
+    if (gameStatus == "finished") {
+      table = "finished_games";
+    }
+    let result = await dbOperations.getGame(gameId, table);
     socket.emit("game-data", result[0]);
     if (result.length == 0) {
       console.log(`invalid game lobby request for game ${gameId} by User ${socket.id}`);
@@ -83,11 +87,16 @@ io.on("connection", (socket) => {
     socket.join("savedGames");
     const sockets = await io.fetchSockets();
     const savedGameSockets = await io.in("savedGames").fetchSockets();
-    let result = await dbOperations.getSavedGames();
+    let result = await dbOperations.getSavedGames("games");
     socket.emit("saved-game-data", result);
     console.log(
       `User ${socket.id} is in the saved games page. ${savedGameSockets.length} total user(s) viewing saved games. ${sockets.length} total connection(s)`
     );
+  });
+
+  socket.on("finished-game-request", async () => {
+    let result = await dbOperations.getSavedGames("finished_games");
+    socket.emit("finished-game-data", result);
   });
 
   socket.on("new-row", async (newRow) => {
