@@ -296,7 +296,7 @@ h1 {
 
 .gem-img {
   width: calc(var(--block-size) * 3.4 / 4.2);
-  border-radius: calc(var(--block-size) * 3.4 / 8.4);
+  border-radius: calc(var(--block-size) * 3.4 / 4.2);
   /* border: solid 1px hsl(0, 0%, 85%); */
 }
 
@@ -378,7 +378,7 @@ h1 {
 
 .player-gold-gem img {
   width: calc(var(--block-size) * 3.4 / 12);
-  border-radius: calc(var(--block-size) * 3.4 / 24);
+  border-radius: calc(var(--block-size) * 3.4 / 12);
   margin-left: 7px;
 }
 
@@ -541,6 +541,15 @@ h1 {
 .emphasize img:hover {
   width: calc(var(--block-size) - 2px);
   border: solid 2px yellow;
+}
+
+.recent-action-text {
+  color: hsl(300, 100%, 78%);
+}
+
+.recent-action-img {
+  /* width: calc(var(--block-size) - 2px); */
+  border: solid 2px magenta !important;
 }
 
 .winning {

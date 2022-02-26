@@ -1,11 +1,7 @@
 import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
-// TODO: Show if a game is over on the saved games page.  Maybe wait until db changes are made to delete the rest of the game data and list finished games below games in process.
-// A long player name will kill the player container display.
-// have "tokens" label in player containers show token count: Tokens (6)
-// Outline recently replaced cards and taken gems (double outline if double taken) - use player color in outline???
-// Delete games from db when complete, or at least all but one row.
+// TODO: A long player name will kill the player container display.
 // Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
 // Easter eggs for Carl
@@ -287,8 +283,8 @@ function dealCards() {
   deckCounter();
 }
 
+// Anything that should only run once upon loading the page should go here.
 function setTable() {
-  // Anything that should only run once upon loading the page should go here.
   playerOrder = playerOrder.filter((x) => x <= numberOfPlayers); // remove any numbers higher than numberOfPlayers
   playerOrder = playerOrder.slice(activePlayer, activePlayer + numberOfPlayers);
   document.getElementsByClassName("player-container")[playerOrder.indexOf(inTurnPlayer)].id = "in-turn-player";
@@ -317,7 +313,6 @@ function setTable() {
     playerDiv.classList.replace(`player-${i + 1}`, `player-${playerOrder[i]}`);
   }
   console.log(`Active Player: ${pData.name}`);
-  resetEventListeners();
   checkForWinner();
   // If game is over, create link to game over page (don't force user to that page in initial load). This is the only way to stay on the page if game is over.
   if (inTurnPlayer == 1 && winnerArray.length > 0) {
@@ -332,6 +327,9 @@ function delayTasks(currentPlayerNum, i) {
   setTimeout(function () {
     updatePlayer(currentPlayerNum, i);
   }, 200 * (i + 1));
+  setTimeout(function () {
+    resetEventListeners();
+  }, 500);
 }
 
 function updatePlayer(player, playerPosition) {
@@ -446,6 +444,10 @@ function updatePlayer(player, playerPosition) {
       purchaseContainer.innerHTML += `<img src="images/cards/${purchasedCards[j].deck}-${purchasedCards[j].cardId}.jpg" />`;
     }
   }
+  highlightActions(player);
+  if (player == activePlayer) {
+    gameInfo[`p${activePlayer}Turn`] = {};
+  }
 }
 
 function deckCounter() {
@@ -501,6 +503,7 @@ function boardCardClickHandler(event) {
   event.target.src = `images/cards/${deckColor}-00.jpg`; // Replace purchased card with face-down card
   // event.target.src = `images/cards/${deckColor}-${newCard.cardId}.jpg`; // For Troubleshooting only!
   // Add the gained color bonus to the table and pData
+  gameInfo[`p${activePlayer}Turn`].purchasedCard = { deck: deckColor, position: deckIndex };
   actionStarted = "card";
   actionIndex = 0;
   stopActionItems();
@@ -644,6 +647,7 @@ function boardGemClickHandler(event) {
       actionIndex = 0; // Turn complete
     }
     actionStarted = "gem";
+    gameInfo[`p${activePlayer}Turn`].gems = takenGemColor;
     startActionItems();
     gemCheck();
   }
@@ -722,6 +726,7 @@ function reserveCard(event) {
   activeDeck.cards.splice(4, 1);
   activeDeck.cards.splice(deckIndex, 1, newCard);
   pData.reserved_cards.push(reservedCard); // Add card to player's reserved cards
+  gameInfo[`p${activePlayer}Turn`].reservedCard = { deck: deckColor, position: deckIndex };
   reserveContainer.parentElement.getElementsByTagName("summary")[0].innerText = `Reserved Cards (${pData.reserved_cards.length})`;
   reserveContainer.innerHTML += `<img src="images/cards/${deckColor}-${reservedCard.cardId}.jpg" />`;
   event.target.src = `images/cards/${deckColor}-00.jpg`; // Replace reserved card with face-down card
@@ -844,6 +849,7 @@ function selectReserved(event) {
     // Remove the whole dropdown if not needed anymore
     reserveContainer.parentElement.remove();
   }
+  gameInfo[`p${activePlayer}Turn`].buyReserved = true;
   actionStarted = "buy reserved";
   actionIndex = 0;
   resetEventListeners();
@@ -906,6 +912,7 @@ function selectNoble(event) {
   document.getElementsByClassName("card-row")[2].classList.remove("ignore-me");
   document.getElementsByClassName("nobles-row")[0].classList.remove("embiggen");
   resetEventListeners();
+  gameInfo[`p${activePlayer}Turn`].noble = true;
 }
 
 function startActionItems() {
@@ -972,6 +979,7 @@ function resetTurnHandler() {
   actionIndex = 1;
   actionStarted = "none";
   nobleClaimed = 0;
+  gameInfo[`p${activePlayer}Turn`] = {};
   dealNobles();
   dealGems();
   dealCards();
@@ -1073,6 +1081,48 @@ function getPData() {
   }
 }
 
+function highlightActions(player) {
+  let position = playerOrder.indexOf(player);
+  let inTurnPosition = playerOrder.indexOf(inTurnPlayer);
+  // Only highlight recent action if it happened after active players last turn.  Always highlight active players last action.
+  if (position != 0 && inTurnPosition != 0 && position >= inTurnPosition) {
+    return;
+  }
+  let playerDiv = document.getElementsByClassName("player-container")[position];
+  let lastPlayerTurn = gameInfo[`p${player}Turn`];
+  for (let j = 1; j <= 5; j++) {
+    if (lastPlayerTurn?.gems) {
+      if (lastPlayerTurn.gems.indexOf(gemOrder[j]) >= 0) {
+        playerDiv.getElementsByClassName("player-gem-container")[j - 1].getElementsByTagName("img")[0].classList.add("recent-action-img");
+      }
+    }
+  }
+  if (lastPlayerTurn?.reservedCard) {
+    let reserveContainer = playerDiv.getElementsByClassName("reserved-card-container")[0];
+    reserveContainer.parentElement.getElementsByTagName("summary")[0].classList.add("recent-action-text");
+    reserveContainer.lastChild.classList.add("recent-action-img");
+    let thisCard = lastPlayerTurn.reservedCard;
+    document.getElementById(`board-${thisCard.deck}-${thisCard.position + 1}`).classList.add("recent-action-img");
+    playerDiv.getElementsByClassName("player-gold-gem")[0].lastElementChild.classList.add("recent-action-img");
+  }
+  if (lastPlayerTurn?.purchasedCard) {
+    let purchaseContainer = playerDiv.getElementsByClassName("purchased-card-container")[0];
+    purchaseContainer.parentElement.getElementsByTagName("summary")[0].classList.add("recent-action-text");
+    purchaseContainer.lastChild.classList.add("recent-action-img");
+    let thisCard = lastPlayerTurn.purchasedCard;
+    document.getElementById(`board-${thisCard.deck}-${thisCard.position + 1}`).classList.add("recent-action-img");
+  }
+  if (lastPlayerTurn?.buyReserved) {
+    let purchaseContainer = playerDiv.getElementsByClassName("purchased-card-container")[0];
+    purchaseContainer.parentElement.getElementsByTagName("summary")[0].classList.add("recent-action-text");
+    purchaseContainer.lastChild.classList.add("recent-action-img");
+  }
+  if (lastPlayerTurn?.noble) {
+    let nobleContainer = playerDiv.getElementsByClassName("player-noble")[0];
+    nobleContainer.lastChild.classList.add("recent-action-img");
+  }
+}
+
 function endTurnHandler() {
   if (activePlayer != inTurnPlayer) {
     return;
@@ -1138,7 +1188,7 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   actionStarted = "none";
   nobleClaimed = 0;
   takenGemColor = [];
-  removeClass(["acted-on", "negative-gem"]);
+  removeClass(["acted-on", "negative-gem", "recent-action-img", "recent-action-text"]);
   document.getElementById("in-turn-player").removeAttribute("id");
   document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
   stopActionItems();
@@ -1158,4 +1208,5 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   document.getElementById("turn-marker").innerText = `${body[`player_${inTurnPlayer}`].name}'s Turn`;
   document.getElementById("round-counter").innerText = `Round: ${round}`;
   dealCards();
+  highlightActions(activePlayer);
 }
