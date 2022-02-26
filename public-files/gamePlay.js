@@ -6,8 +6,6 @@ import CardsDeck from "./decks/cardDeck.js";
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
 // Easter eggs for Carl
 // - ^Rick-roll the winner
-// Add ability to cancel when in the middle of reserving a card/noble, or buying a reserved cards?
-// - ^Keep reset turn illuminated - that will do the job
 // Add solo mode as option.  different logic to employ, probably?
 // Add option to change winning score
 // Need a game log
@@ -16,6 +14,8 @@ import CardsDeck from "./decks/cardDeck.js";
 var numberOfPlayers,
   gameData,
   gameInfo,
+  logData,
+  logMessage,
   resetData,
   resetState,
   previousPlayer,
@@ -698,9 +698,16 @@ function goldGemHandler() {
     }
   }
   document.getElementById("player-notice").innerText = "Select a card to reserve";
-  document.getElementById("players-container").classList.add("ignore-me");
   document.getElementsByClassName("nobles-row")[0].classList.add("ignore-me");
   document.getElementsByClassName("gems-column")[0].classList.add("ignore-me");
+  document.getElementsByClassName("main-player-gem-row")[0].classList.add("ignore-me");
+  document.getElementsByClassName("player-drop-down")[0].classList.add("ignore-me");
+  for (var i = 1; i < 4; i++) {
+    document.getElementsByClassName("action-buttons")[0].children[i].classList.add("ignore-me");
+  }
+  for (var i = 1; i < numberOfPlayers; i++) {
+    document.getElementsByClassName("player-container")[i].classList.add("ignore-me");
+  }
   for (var i = 0; i < 12; i++) {
     document.getElementsByClassName("card-container")[i].classList.add("emphasize");
   }
@@ -733,12 +740,7 @@ function reserveCard(event) {
   // event.target.src = `images/cards/${deckColor}-${newCard.cardId}.jpg`; // For Troubleshooting only!
   actionIndex = 0; // Disable further actions after reserving is complete
   document.getElementById("player-notice").innerText = "";
-  document.getElementById("players-container").classList.remove("ignore-me");
-  document.getElementsByClassName("nobles-row")[0].classList.remove("ignore-me");
-  document.getElementsByClassName("gems-column")[0].classList.remove("ignore-me");
-  for (var i = 0; i < 12; i++) {
-    document.getElementsByClassName("card-container")[i].classList.remove("emphasize");
-  }
+  removeClass(["ignore-me", "emphasize"]);
   startActionItems();
   gemCheck();
   deckCounter();
@@ -815,6 +817,9 @@ function buyReservedHandler() {
   for (var i = 1; i < numberOfPlayers; i++) {
     document.getElementsByClassName("player-container")[i].classList.add("ignore-me");
   }
+  for (var i = 1; i < 4; i++) {
+    document.getElementsByClassName("action-buttons")[0].children[i].classList.add("ignore-me");
+  }
   document.getElementsByClassName("main-player-gem-row")[0].classList.add("ignore-me");
   document.getElementsByClassName("reserved-card-container")[0].classList.add("embiggen");
   console.log("Buying reserved card");
@@ -836,12 +841,7 @@ function selectReserved(event) {
     return; // Can't afford card.
   }
   // Un-dim everything BEFORE the reserved card dropdown changes or is removed.
-  document.getElementById("game-board").classList.remove("ignore-me");
-  for (var i = 1; i < numberOfPlayers; i++) {
-    document.getElementsByClassName("player-container")[i].classList.remove("ignore-me");
-  }
-  document.getElementsByClassName("main-player-gem-row")[0].classList.remove("ignore-me");
-  reserveContainer.classList.remove("embiggen");
+  removeClass(["ignore-me", "embiggen"]);
   pData.reserved_cards.splice(reservedIndex, 1); // Remove card from player's reserved cards
   event.target.remove();
   reserveContainer.parentElement.getElementsByTagName("summary")[0].innerText = `Reserved Cards (${pData.reserved_cards.length})`;
@@ -866,11 +866,16 @@ function claimNobleHandler() {
     return;
   }
   document.getElementById("player-notice").innerText = "Select a Noble to claim";
-  document.getElementById("players-container").classList.add("ignore-me");
+  document.getElementsByClassName("main-player-gem-row")[0].classList.add("ignore-me");
+  document.getElementsByClassName("player-drop-down")[0].classList.add("ignore-me");
   document.getElementsByClassName("gems-column")[0].classList.add("ignore-me");
-  document.getElementsByClassName("card-row")[0].classList.add("ignore-me");
-  document.getElementsByClassName("card-row")[1].classList.add("ignore-me");
-  document.getElementsByClassName("card-row")[2].classList.add("ignore-me");
+  for (var i = 1; i < 4; i++) {
+    document.getElementsByClassName("action-buttons")[0].children[i].classList.add("ignore-me");
+    document.getElementsByClassName("card-row")[i - 1].classList.add("ignore-me");
+  }
+  for (var i = 1; i < numberOfPlayers; i++) {
+    document.getElementsByClassName("player-container")[i].classList.add("ignore-me");
+  }
   document.getElementsByClassName("nobles-row")[0].classList.add("embiggen");
   removeEventListeners();
   for (var i = 0; i < noblesDeck.nobles.length; i++) {
@@ -905,12 +910,7 @@ function selectNoble(event) {
   mainPlayerContainer.getElementsByClassName("player-noble")[0].innerHTML += `<img src="images\\nobles\\nobles-${claimedNoble.nobleId}.jpg" />`;
   nobleClaimed = 1;
   document.getElementById("player-notice").innerText = "";
-  document.getElementById("players-container").classList.remove("ignore-me");
-  document.getElementsByClassName("gems-column")[0].classList.remove("ignore-me");
-  document.getElementsByClassName("card-row")[0].classList.remove("ignore-me");
-  document.getElementsByClassName("card-row")[1].classList.remove("ignore-me");
-  document.getElementsByClassName("card-row")[2].classList.remove("ignore-me");
-  document.getElementsByClassName("nobles-row")[0].classList.remove("embiggen");
+  removeClass(["ignore-me", "embiggen"]);
   resetEventListeners();
   gameInfo[`p${activePlayer}Turn`].noble = true;
 }
