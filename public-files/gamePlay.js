@@ -1,7 +1,8 @@
 import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
-// TODO: A long player name will kill the player container display.
+// TODO: If you try to claim a noble you can't afford, the event listener is killed - either reset event listeners to before claiming noble, or go back to the beginning to set event listeners for claiming a noble.
+// Can't end turn when taking less than 3 gems if there are no more valid choices to take.
 // Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
 // Easter eggs for Carl
@@ -54,6 +55,7 @@ var yellowDeck = new CardsDeck();
 var greenDeck = new CardsDeck();
 var blankDeck = new CardsDeck(); // To be used when a deck runs out of cards
 
+var cssRoot = document.querySelector(":root");
 var mainPlayerContainer = document.getElementsByClassName("main-player-container")[0];
 var boardGemContainer = document.getElementsByClassName("gems-column")[0];
 var gameBoardCards = document.getElementsByClassName("card-container");
@@ -63,7 +65,43 @@ var resetTurnButton = document.getElementById("reset-turn");
 var endTurnButton = document.getElementById("end-turn");
 var buyReservedButton = document.getElementById("buy-reserved");
 var claimNobleButton = document.getElementById("claim-noble");
+var layoutRadio = document.getElementsByName("layout");
 resetTurnButton.addEventListener("click", resetTurnHandler); // Should never be removed
+for (const radioButton of layoutRadio) {
+  radioButton.addEventListener("change", resize);
+}
+
+window.onresize = resize;
+resize();
+function resize() {
+  // Height and width calcs are based on margins/border/padding to determine remaining size for content.
+  var heightMaxBlock, widthMaxBlock, blockSize;
+  const layout = document.querySelector('input[name="layout"]:checked').value;
+  function gameBoardFull() {
+    heightMaxBlock = (window.innerHeight * 0.98 - 69) / 5.386;
+    widthMaxBlock = (window.innerWidth * 0.98 - 136) / 5.94;
+    blockSize = Math.min(heightMaxBlock, widthMaxBlock); //The size in pixels of the width of one card
+    blockSize = Math.max(blockSize, 75);
+  }
+  function sideBySide() {
+    heightMaxBlock = (window.innerHeight * 0.98 - 69) / 5.386;
+    widthMaxBlock = (window.innerWidth * 0.98 - 236) / 10.049;
+    blockSize = Math.min(heightMaxBlock, widthMaxBlock);
+  }
+  if (layout == "side") {
+    sideBySide();
+  } else if (layout == "full") {
+    gameBoardFull();
+  } else {
+    const aspectRatio = window.innerWidth / window.innerHeight;
+    if (aspectRatio > 1.3) {
+      sideBySide();
+    } else {
+      gameBoardFull();
+    }
+  }
+  cssRoot.style.setProperty("--block-size", `${blockSize}px`);
+}
 
 initiateNotifications();
 function initiateNotifications() {
