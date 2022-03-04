@@ -2,7 +2,7 @@ import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
 // TODO: If you try to claim a noble you can't afford, the event listener is killed - either reset event listeners to before claiming noble, or go back to the beginning to set event listeners for claiming a noble.
-// Can't end turn when taking less than 3 gems if there are no more valid choices to take.
+// player previous actions not always being cleared before adding newest turn.  Multiple entries can be found (gems & purchase, gems & purchase & reserve).
 // Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
 // Easter eggs for Carl
@@ -30,6 +30,7 @@ var numberOfPlayers,
   p4Data,
   round;
 var takenGemColor = [];
+var remainingGemColor = [];
 var negativeGemColor = [];
 let boardCardsArray = [];
 let winnerArray = [];
@@ -617,6 +618,15 @@ function gemCheck() {
   } else {
     mainPlayerContainer.getElementsByClassName("main-player-gem-row")[0].classList.remove("over-ten");
   }
+  // Redefine remaining gem color array (this is only for knowing when a player can end a turn without taking a full turn worth of gems)
+  remainingGemColor = [];
+  for (var i = 1; i < 6; i++) {
+    let color = gemOrder[i];
+    let boardCount = boardGems[color];
+    if (boardCount != 0 && takenGemColor.indexOf(color) == -1) {
+      remainingGemColor.push(color);
+    }
+  }
 }
 
 function boardGemClickHandler(event) {
@@ -1173,8 +1183,8 @@ function endTurnHandler() {
   for (var i in pData.gems) {
     totalPlayerGems += pData.gems[i];
   }
-  // Notify player if turn wasn't completed, allowing for ending turn with less than full turn if player has 10 gems.
-  if (actionIndex == 1 && (totalPlayerGems < 10 || actionStarted != "gem")) {
+  // Notify player if turn wasn't completed, allowing for ending turn with less than full turn if player has 10 gems, or if no more gems remain.
+  if (actionIndex == 1 && ((totalPlayerGems < 10 && remainingGemColor.length > 0) || actionStarted != "gem")) {
     alert(`Please complete your "${actionStarted}" action`);
     return;
   }
