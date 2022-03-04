@@ -1,9 +1,7 @@
 import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
-// TODO: If you try to claim a noble you can't afford, the event listener is killed - either reset event listeners to before claiming noble, or go back to the beginning to set event listeners for claiming a noble.
-// player previous actions not always being cleared before adding newest turn.  Multiple entries can be found (gems & purchase, gems & purchase & reserve).
-// Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
+// TODO: Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
 // Easter eggs for Carl
 // - ^Rick-roll the winner
@@ -256,6 +254,7 @@ socket.on("new-row-result", (newData) => {
     startActionItems();
     new Notification("Time To Play!", { body: "It's your turn" });
     document.getElementsByClassName("action-buttons")[0].classList.remove("invisible");
+    gameInfo[`p${activePlayer}Turn`] = {};
   } else {
     document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
   }
@@ -943,6 +942,8 @@ function selectNoble(event) {
     let playerValue = pData.bonus[gemOrder[i]];
     if (cost > playerValue) {
       alert("Nope");
+      removeClass(["ignore-me", "embiggen"]);
+      document.getElementById("player-notice").innerText = "";
       resetEventListeners();
       return;
     }
