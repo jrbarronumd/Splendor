@@ -217,7 +217,7 @@ h1 {
 /*  All calcs are done with the following dimensions in mind (raw img dimensions) 
     nobles=453 x 453, cards=498 x 693, gems=339 x 339  */
 
-.game-table {
+#game-table {
   display: flex;
   flex-wrap: wrap;
 }
@@ -316,11 +316,11 @@ h1 {
   display: grid;
   width: 100%;
   justify-content: center;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto 40px;
 }
 
 #round-counter {
-  justify-content: flex-end;
+  margin-right: 0.5em;
 }
 
 .main-player-container,
@@ -462,9 +462,64 @@ h1 {
   font-size: calc(var(--block-size) / 6);
 }
 
+#menu-button {
+  position: absolute;
+  top: 13px;
+  right: 5px;
+  width: 30px;
+  padding: 0 5px;
+  border-radius: 5px;
+}
+
+#menu-button:hover {
+  background-color: hsl(0, 0%, 50%);
+  cursor: pointer;
+}
+
+#menu-button div {
+  width: 30px;
+  height: calc(var(--block-size) / 30);
+  background-color: hsl(0, 0%, 85%, 60%);
+  margin: calc(var(--block-size) / 25) 0;
+  border-radius: 22px;
+}
+
+#menu {
+  display: none;
+  position: absolute;
+  background-color: hsl(0, 0%, 25%, 95%);
+  padding: 20px;
+  border-radius: calc(var(--block-size) / 15);
+  top: calc((var(--block-size) / 5) + 20px);
+  right: -0;
+}
+
 .options {
+  margin-bottom: 15px;
+}
+
+.menu-item {
+  list-style: none;
+  margin: 0;
+}
+
+.option-button {
+  padding: 5px;
+  border-radius: 5px;
+  background-color: hsl(0, 0%, 40%);
   text-align: center;
-  margin-bottom: 10px;
+  width: max-content;
+  margin: 0 10px;
+}
+
+#menu-close-button {
+  margin-top: 15px;
+  justify-self: center;
+}
+
+.option-button:hover {
+  background-color: hsl(0, 0%, 47%);
+  cursor: pointer;
 }
 
 /* Game over page ****************************************************** */

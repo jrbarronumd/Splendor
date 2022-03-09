@@ -11,7 +11,7 @@
     <script src="/socket.io/socket.io.js"></script>
   </head>
   <body>
-    <div class="game-table">
+    <div id="game-table">
       <div id="game-board">
         <div class="game-board-rows">
           <div id="player-notice"></div>
@@ -318,18 +318,50 @@
     </div>
     <div class="nav">
       <a href="index">Home</a>
+      <a id="reload-button" href="index">Reload</a>
     </div>
-    <div class="options">
-      Options:
+    <div id="menu-button">
+      <div></div>
+      <div></div>
+      <div></div>
+    </div>
+    <div id="menu">
       <div class="options">
         Layout:
-        <input type="radio" name="layout" id="full" value="full" />
-        <label for="full">Game board full screen</label>
-        <input type="radio" name="layout" id="side" value="side" />
-        <label for="side">game board/players side by side</label>
-        <input type="radio" name="layout" id="auto" value="auto" checked />
-        <label for="auto">Auto</label>
+        <menu class="menu-item">
+          <li>
+            <input type="radio" name="layout" id="full" value="full" />
+            <label for="full">Game board full screen</label>
+          </li>
+          <li>
+            <input type="radio" name="layout" id="side" value="side" />
+            <label for="side">Game board/players side by side</label>
+          </li>
+          <li>
+            <input type="radio" name="layout" id="auto" value="auto" checked />
+            <label for="auto">Auto</label>
+          </li>
+          <li>
+            <label for="magnify">Custom</label>
+            <input type="range" id="magnify" name="magnify" min="0.5" max="2" value="1" step="0.05" />
+            <span id="menu-magnify-reset" class="option-button">reset</span>
+          </li>
+        </menu>
       </div>
+      <div class="options">
+        Sound / Notifications:
+        <menu class="menu-item">
+          <li>
+            <input type="checkbox" id="notifications-toggle" name="notifications" checked />
+            <label for="notifications-toggle">Browser Notifications</label>
+          </li>
+          <li>
+            <input type="checkbox" id="audio-toggle" name="notifications" value="notify" />
+            <label for="audio-toggle">Play Sounds</label>
+          </li>
+        </menu>
+      </div>
+      <div id="menu-close-button" class="option-button">Close</div>
     </div>
   </body>
 </html>

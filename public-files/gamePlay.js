@@ -1,7 +1,8 @@
 import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
-// TODO: Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
+// TODO: Make sure player containers are centered when in full-width mode
+// Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
 // Easter eggs for Carl
 // - ^Rick-roll the winner
@@ -53,6 +54,11 @@ var blueDeck = new CardsDeck();
 var yellowDeck = new CardsDeck();
 var greenDeck = new CardsDeck();
 var blankDeck = new CardsDeck(); // To be used when a deck runs out of cards
+var bumpSound = new Audio("./sounds/bump.mp3");
+var deadSound = new Audio("./sounds/dead.wav");
+var jumpSound = new Audio("./sounds/jump.wav");
+var pingSound = new Audio("./sounds/ping.mp3");
+var smashSound = new Audio("./sounds/smash.mp3");
 
 var cssRoot = document.querySelector(":root");
 var mainPlayerContainer = document.getElementsByClassName("main-player-container")[0];
@@ -60,22 +66,38 @@ var boardGemContainer = document.getElementsByClassName("gems-column")[0];
 var gameBoardCards = document.getElementsByClassName("card-container");
 var gameBoardGems = boardGemContainer.getElementsByClassName("gem-container");
 var gameBoardNobles = document.getElementsByClassName("nobles-row")[0];
+var menuButton = document.getElementById("menu-button");
 var resetTurnButton = document.getElementById("reset-turn");
 var endTurnButton = document.getElementById("end-turn");
 var buyReservedButton = document.getElementById("buy-reserved");
 var claimNobleButton = document.getElementById("claim-noble");
 var layoutRadio = document.getElementsByName("layout");
+var magnifySlider = document.getElementById("magnify");
+var menuCloseButton = document.getElementById("menu-close-button");
+var magnifyResetButton = document.getElementById("menu-magnify-reset");
+var notificationToggle = document.getElementById("notifications-toggle");
+var audioToggle = document.getElementById("audio-toggle");
+document.getElementById("reload-button").href = window.location; // Delete once not needed for development? Using this instead of refresh enables sounds to play immediately.
+menuButton.addEventListener("click", menuOpen);
 resetTurnButton.addEventListener("click", resetTurnHandler); // Should never be removed
+magnifySlider.addEventListener("input", resize);
+notificationToggle.addEventListener("change", initiateNotifications);
 for (const radioButton of layoutRadio) {
   radioButton.addEventListener("change", resize);
 }
 
 window.onresize = resize;
 resize();
-function resize() {
+function resize(event) {
   // Height and width calcs are based on margins/border/padding to determine remaining size for content.
   var heightMaxBlock, widthMaxBlock, blockSize;
+  const gameTable = document.getElementById("game-table");
   const layout = document.querySelector('input[name="layout"]:checked').value;
+  if (event?.target?.name == "layout") {
+    // Reset magnification if triggered by a radio button
+    magnifySlider.value = 1;
+  }
+  var magnification = magnifySlider.value;
   function gameBoardFull() {
     heightMaxBlock = (window.innerHeight * 0.98 - 69) / 5.386;
     widthMaxBlock = (window.innerWidth * 0.98 - 136) / 5.94;
@@ -89,9 +111,13 @@ function resize() {
   }
   if (layout == "side") {
     sideBySide();
+    gameTable.style.flexWrap = "nowrap";
   } else if (layout == "full") {
     gameBoardFull();
+    gameTable.style.flexWrap = "wrap";
   } else {
+    // Layout = Auto
+    gameTable.style.flexWrap = "wrap";
     const aspectRatio = window.innerWidth / window.innerHeight;
     if (aspectRatio > 1.3) {
       sideBySide();
@@ -99,11 +125,16 @@ function resize() {
       gameBoardFull();
     }
   }
-  cssRoot.style.setProperty("--block-size", `${blockSize}px`);
+  var modifiedBlockSize = blockSize * magnification;
+  cssRoot.style.setProperty("--block-size", `${modifiedBlockSize}px`);
 }
 
 initiateNotifications();
 function initiateNotifications() {
+  if (!notificationToggle.checked) {
+    // Notifications not desired
+    return;
+  }
   if (!Notification) {
     alert("Desktop notifications not available in your browser. Try Chrome, Edge, or FireFox."); // If browser is not compatible this will occur
     return;
@@ -111,6 +142,38 @@ function initiateNotifications() {
   if (Notification.permission !== "granted") {
     Notification.requestPermission();
   }
+}
+
+function notifyUser() {
+  if (notificationToggle.checked) {
+    new Notification("Time To Play!", { body: "It's your turn" });
+  }
+  // Audio (not notification) will not play until the user interacts with the domain. So if the user reloads the page, it won't play a sound until after a click event.
+  if (audioToggle.checked) {
+    var coinSound = new Audio("./sounds/coin.mp3");
+    coinSound.play();
+  }
+}
+
+function menuOpen() {
+  removeEventListeners();
+  menuButton.removeEventListener("click", menuOpen);
+  document.getElementById("menu").style.display = "block";
+  magnifyResetButton.addEventListener("click", resetMag);
+  menuCloseButton.addEventListener("click", menuClose);
+  menuButton.addEventListener("click", menuClose);
+}
+function menuClose() {
+  menuButton.removeEventListener("click", menuClose);
+  menuCloseButton.removeEventListener("click", menuClose);
+  magnifyResetButton.removeEventListener("click", resetMag);
+  document.getElementById("menu").style.display = "none";
+  menuButton.addEventListener("click", menuOpen);
+  resetEventListeners();
+}
+function resetMag() {
+  magnifySlider.value = 1;
+  resize();
 }
 
 function resetEventListeners() {
@@ -193,7 +256,7 @@ socket.once("game-data", (respData) => {
   setTable();
   if (inTurnPlayer == activePlayer && gameStatus == "active") {
     startActionItems();
-    new Notification("Time To Play!", { body: "It's your turn" });
+    notifyUser();
     document.getElementsByClassName("action-buttons")[0].classList.remove("invisible");
   } else {
     document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
@@ -252,7 +315,7 @@ socket.on("new-row-result", (newData) => {
   checkForWinner();
   if (inTurnPlayer == activePlayer) {
     startActionItems();
-    new Notification("Time To Play!", { body: "It's your turn" });
+    notifyUser();
     document.getElementsByClassName("action-buttons")[0].classList.remove("invisible");
     gameInfo[`p${activePlayer}Turn`] = {};
   } else {
