@@ -1,15 +1,13 @@
 import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
 
-// TODO: Make sure player containers are centered when in full-width mode
-// Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
+// TODO: Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
 // Easter eggs for Carl
 // - ^Rick-roll the winner
 // Add solo mode as option.  different logic to employ, probably?
 // Add option to change winning score
-// Need a game log
-// TODO: Make magnification-on-hover optional (need to build a menu...)
+// TODO: Need a game log
 
 var numberOfPlayers,
   gameData,
@@ -53,7 +51,7 @@ var noblesDeck = new NoblesDeck();
 var blueDeck = new CardsDeck();
 var yellowDeck = new CardsDeck();
 var greenDeck = new CardsDeck();
-var blankDeck = new CardsDeck(); // To be used when a deck runs out of cards
+var blankDeck = new CardsDeck(); // Used when a deck runs out of cards
 var bumpSound = new Audio("./sounds/bump.mp3");
 var deadSound = new Audio("./sounds/dead.wav");
 var jumpSound = new Audio("./sounds/jump.wav");
@@ -77,25 +75,48 @@ var menuCloseButton = document.getElementById("menu-close-button");
 var magnifyResetButton = document.getElementById("menu-magnify-reset");
 var notificationToggle = document.getElementById("notifications-toggle");
 var audioToggle = document.getElementById("audio-toggle");
+var cardMagToggle = document.getElementById("card-mag-toggle");
 document.getElementById("reload-button").href = window.location; // Delete once not needed for development? Using this instead of refresh enables sounds to play immediately.
 menuButton.addEventListener("click", menuOpen);
 resetTurnButton.addEventListener("click", resetTurnHandler); // Should never be removed
-magnifySlider.addEventListener("input", resize);
-notificationToggle.addEventListener("change", initiateNotifications);
-for (const radioButton of layoutRadio) {
-  radioButton.addEventListener("change", resize);
+
+getFromStorage();
+function getFromStorage() {
+  const storedLayout = localStorage.getItem("layout");
+  const storedAudio = localStorage.getItem("audio");
+  const storedNotifications = localStorage.getItem("notifications");
+  const storedMagSliderVal = localStorage.getItem("magSlider");
+  const storedCardMag = localStorage.getItem("cardMag");
+  if (storedLayout) {
+    document.getElementById(storedLayout).checked = true;
+  }
+  if (storedAudio) {
+    audioToggle.checked = JSON.parse(storedAudio);
+  }
+  if (storedNotifications) {
+    notificationToggle.checked = JSON.parse(storedNotifications);
+  }
+  if (storedMagSliderVal) {
+    magnifySlider.value = storedMagSliderVal;
+  }
+  if (storedCardMag) {
+    cardMagToggle.checked = JSON.parse(storedCardMag);
+  }
+  resize();
 }
 
 window.onresize = resize;
-resize();
 function resize(event) {
   // Height and width calcs are based on margins/border/padding to determine remaining size for content.
   var heightMaxBlock, widthMaxBlock, blockSize;
   const gameTable = document.getElementById("game-table");
   const layout = document.querySelector('input[name="layout"]:checked').value;
   if (event?.target?.name == "layout") {
-    // Reset magnification if triggered by a radio button
+    // Reset magnification and store layout preference to local storage if triggered by a radio button
     magnifySlider.value = 1;
+    localStorage.setItem("layout", layout);
+  } else if (event?.target?.name == "magnify") {
+    localStorage.setItem("magSlider", magnifySlider.value);
   }
   var magnification = magnifySlider.value;
   function gameBoardFull() {
@@ -129,8 +150,23 @@ function resize(event) {
   cssRoot.style.setProperty("--block-size", `${modifiedBlockSize}px`);
 }
 
+// Set menu event listeners ////////////////////////////////////////////////////////
+magnifySlider.addEventListener("input", resize);
+notificationToggle.addEventListener("change", initiateNotifications);
+cardMagToggle.addEventListener("change", magOnHover);
+for (const radioButton of layoutRadio) {
+  radioButton.addEventListener("change", resize);
+}
+audioToggle.addEventListener("change", () => {
+  localStorage.setItem("audio", audioToggle.checked);
+});
+
 initiateNotifications();
-function initiateNotifications() {
+function initiateNotifications(event) {
+  if (event) {
+    console.log("Event");
+    localStorage.setItem("notifications", notificationToggle.checked);
+  }
   if (!notificationToggle.checked) {
     // Notifications not desired
     return;
@@ -173,7 +209,23 @@ function menuClose() {
 }
 function resetMag() {
   magnifySlider.value = 1;
+  localStorage.setItem("magSlider", magnifySlider.value);
   resize();
+}
+function magOnHover(event) {
+  if (event) {
+    localStorage.setItem("cardMag", cardMagToggle.checked);
+  }
+  if (cardMagToggle.checked) {
+    for (const item of document.getElementsByClassName("player-details")) {
+      item.classList.add("mag-on-hover");
+    }
+    for (const item of document.getElementsByClassName("player-noble")) {
+      item.classList.add("mag-on-hover");
+    }
+  } else {
+    removeClass(["mag-on-hover"]);
+  }
 }
 
 function resetEventListeners() {
@@ -428,9 +480,12 @@ function delayTasks(currentPlayerNum, i) {
   setTimeout(function () {
     updatePlayer(currentPlayerNum, i);
   }, 200 * (i + 1));
-  setTimeout(function () {
-    resetEventListeners();
-  }, 500);
+  if (i == numberOfPlayers - 1) {
+    setTimeout(function () {
+      resetEventListeners();
+      magOnHover();
+    }, 1000);
+  }
 }
 
 function updatePlayer(player, playerPosition) {
