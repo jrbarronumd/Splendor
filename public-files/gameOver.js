@@ -1,5 +1,7 @@
 // Game Over
 
+import { rickRoll } from "./mischief.js";
+
 const socket = io();
 var gameData, numberOfPlayers, p1Data, p2Data, p3Data, p4Data, gameInfo;
 var allPlayers = {};
@@ -81,3 +83,5 @@ function singleWinner() {
 function tieGame() {
   document.getElementById("winner-announcement").innerText = `Go kiss your sister.  This game ended in a tie. BOOOOOOO!`;
 }
+
+rickRoll(2000);

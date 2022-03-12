@@ -1,5 +1,6 @@
 import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
+import { rickRoll } from "./mischief.js";
 
 // TODO: Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
@@ -37,7 +38,7 @@ var playerOrder = [0, 1, 2, 3, 4, 1, 2, 3];
 var myQueryString = new URLSearchParams(window.location.search);
 var gameId = myQueryString.get("game_id");
 var gameStatus = myQueryString.get("status") || "active";
-if (!gameId || !myQueryString.get("p")) window.location = "index"; // Go to home if no "gameID=" or "p=" in query string
+if (!gameId || !myQueryString.get("p")) window.location = "index"; // Go to home page if no "gameID=" or "p=" in query string
 var activePlayer = parseInt(myQueryString.get("p").slice(-1));
 var inTurnPlayer = 0;
 var gemOrder = ["gold", "white", "blue", "green", "red", "black"];

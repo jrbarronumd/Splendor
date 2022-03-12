@@ -628,3 +628,46 @@ h1 {
 }
 
 /* Anything that will override game play visualizations *********************/
+
+#video-container {
+  position: fixed;
+  display: none;
+  background-color: hsl(0, 0%, 40%, 95%);
+  border: 2px solid hsl(0, 0%, 85%);
+  font-size: 1.8em;
+  color: white;
+  top: 5%;
+  left: 5%;
+  width: 90%;
+  height: 90%;
+}
+
+#video-text {
+  margin: 0 auto;
+  text-align: center;
+  height: 10%;
+  max-width: 80%;
+}
+
+#video-close {
+  position: absolute;
+  right: 0;
+  top: -2vh;
+  font-size: 8vh;
+  font-family: "Times New Roman", Times, serif;
+  margin: 0 0.5vh;
+  display: none;
+}
+
+#video-close:hover {
+  cursor: pointer;
+}
+
+#video {
+  position: absolute;
+  border: none;
+  left: 2.5%;
+  top: 10%;
+  width: 95%;
+  height: 90%;
+}
