@@ -42,8 +42,12 @@ socket.on("game-data", (respData) => {
 function initiatePage() {
   if (gameInfo.winner.length == 1) {
     singleWinner();
+    if (gameInfo.winner[0] == activePlayer) {
+      rickRoll(5000, "Congratulations, you win!"); // This will only do something if there is a mischief level in the game db (and in the URL of this page)
+    }
   } else if (gameInfo.winner.length > 1) {
     tieGame();
+    rickRoll(5000, "BOOOOOOO!, a tie!");
   }
   // Create an object with player numbers and scores to sort and list scores in order on the page
   for (let i = 0; i < numberOfPlayers; i++) {
@@ -83,5 +87,3 @@ function singleWinner() {
 function tieGame() {
   document.getElementById("winner-announcement").innerText = `Go kiss your sister.  This game ended in a tie. BOOOOOOO!`;
 }
-
-rickRoll(2000);

@@ -349,6 +349,8 @@ socket.on("new-row-result", (newData) => {
   // If game is over, go to game over page
   if (inTurnPlayer == 1 && gameInfo.winner.length > 0) {
     let gameLink = "game-over" + "?game_id=" + gameId + "&p=p" + activePlayer;
+    let mischiefLevel = gameInfo.mischief;
+    if (mischiefLevel) gameLink += "&m=" + mischiefLevel;
     setTimeout(function () {
       window.location = gameLink;
     }, 5000);
@@ -471,6 +473,8 @@ function setTable() {
   // If game is over, create link to game over page (don't force user to that page in initial load). This is the only way to stay on the page if game is over.
   if (inTurnPlayer == 1 && winnerArray.length > 0) {
     let gameLink = "game-over" + "?game_id=" + gameId + "&p=p" + activePlayer;
+    let mischiefLevel = gameInfo.mischief;
+    if (mischiefLevel) gameLink += "&m=" + mischiefLevel;
     let navContainer = document.getElementsByClassName("nav")[0];
     navContainer.innerHTML += `<a href=${gameLink}>Game Over</a>`;
   }
@@ -1364,6 +1368,8 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   if (inTurnPlayer == 1 && winnerArray.length > 0) {
     socket.emit("end-game", gameId);
     let gameLink = "game-over" + "?game_id=" + gameId + "&p=p" + activePlayer;
+    let mischiefLevel = gameInfo.mischief;
+    if (mischiefLevel) gameLink += "&m=" + mischiefLevel;
     setTimeout(function () {
       window.location = gameLink;
     }, 5000);
