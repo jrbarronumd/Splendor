@@ -1,6 +1,6 @@
 import NoblesDeck from "./decks/noblesDeck.js";
 import CardsDeck from "./decks/cardDeck.js";
-import { rickRoll } from "./mischief.js";
+import { rickRoll, randomRickRoll } from "./mischief.js";
 
 // TODO: Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
@@ -26,7 +26,8 @@ var numberOfPlayers,
   p2Data,
   p3Data,
   p4Data,
-  round;
+  round,
+  timerId; // mischief
 var takenGemColor = [];
 var remainingGemColor = [];
 var negativeGemColor = [];
@@ -45,6 +46,7 @@ var gemOrder = ["gold", "white", "blue", "green", "red", "black"];
 var actionIndex = 1; // 0 will stop any actions
 var actionStarted = "none"; // Possibilities: none, gem, card, etc...
 var nobleClaimed = 0; // Change to 1 on reservation to ensure only one per turn
+var clickCounter = 0; // mischief
 let winningScore = 15;
 let notifyWinner = true;
 
@@ -53,11 +55,11 @@ var blueDeck = new CardsDeck();
 var yellowDeck = new CardsDeck();
 var greenDeck = new CardsDeck();
 var blankDeck = new CardsDeck(); // Used when a deck runs out of cards
-var bumpSound = new Audio("./sounds/bump.mp3");
-var deadSound = new Audio("./sounds/dead.wav");
-var jumpSound = new Audio("./sounds/jump.wav");
-var pingSound = new Audio("./sounds/ping.mp3");
-var smashSound = new Audio("./sounds/smash.mp3");
+// var bumpSound = new Audio("./sounds/bump.mp3");
+// var deadSound = new Audio("./sounds/dead.wav");
+// var jumpSound = new Audio("./sounds/jump.wav");
+// var pingSound = new Audio("./sounds/ping.mp3");
+// var smashSound = new Audio("./sounds/smash.mp3");
 
 var cssRoot = document.querySelector(":root");
 var mainPlayerContainer = document.getElementsByClassName("main-player-container")[0];
@@ -80,6 +82,7 @@ var cardMagToggle = document.getElementById("card-mag-toggle");
 document.getElementById("reload-button").href = window.location; // Delete once not needed for development? Using this instead of refresh enables sounds to play immediately.
 menuButton.addEventListener("click", menuOpen);
 resetTurnButton.addEventListener("click", resetTurnHandler); // Should never be removed
+document.getElementById("round-counter").addEventListener("click", roundClickHandler); // mischief
 
 getFromStorage();
 function getFromStorage() {
@@ -256,6 +259,10 @@ function resetEventListeners() {
     const button = mainPlayerContainer.getElementsByClassName("reserved-card-container")[0].children[i];
     button.removeEventListener("click", selectReserved);
   }
+  for (var i = 0; i < numberOfPlayers; i++) {
+    // mischief
+    document.getElementsByClassName("player-score")[i].addEventListener("click", playerScoreClickHandler);
+  }
 }
 function removeEventListeners() {
   endTurnButton.removeEventListener("click", endTurnHandler);
@@ -273,6 +280,10 @@ function removeEventListeners() {
   for (var i = 0; i < 5; i++) {
     const button = mainPlayerContainer.getElementsByClassName("gem-img")[i];
     button.removeEventListener("click", playerGemClickHandler);
+  }
+  for (var i = 0; i < numberOfPlayers; i++) {
+    // mischief
+    document.getElementsByClassName("player-score")[i].removeEventListener("click", playerScoreClickHandler);
   }
 }
 
@@ -621,6 +632,12 @@ function boardCardClickHandler(event) {
   if (activePlayer != inTurnPlayer) {
     return;
   }
+  // Check to see if player is selected for harassment.
+  if (gameInfo.selectedPlayers?.[activePlayer]) {
+    let randomMischief = randomRickRoll(gameInfo.selectedPlayers[activePlayer]);
+    // If RickRolled, abort click action
+    if (randomMischief) return;
+  }
   if (actionIndex == 0) {
     alert(`You have already completed your turn. Please click "End Turn" or "Reset Turn" button`);
     return;
@@ -752,6 +769,13 @@ function gemCheck() {
 }
 
 function boardGemClickHandler(event) {
+  if (activePlayer != inTurnPlayer) return;
+  // Check to see if player is selected for harassment.
+  if (gameInfo.selectedPlayers?.[activePlayer]) {
+    let randomMischief = randomRickRoll(gameInfo.selectedPlayers[activePlayer]);
+    // If RickRolled, abort click action
+    if (randomMischief) return;
+  }
   if (actionStarted != "none" && actionStarted != "gem") {
     alert(
       `You have already started completing a "${actionStarted}" action. Please complete that action and end your turn, or click "Reset Turn" button`
@@ -762,65 +786,63 @@ function boardGemClickHandler(event) {
     alert(`You have already completed your turn. Please click "End Turn" or "Reset Turn" button`);
     return;
   }
-  if (activePlayer == inTurnPlayer) {
-    let clickedContainer = event.target.parentElement;
-    let gemIndex = Array.prototype.indexOf.call(clickedContainer.parentElement.children, clickedContainer);
-    let boardCountContainer = clickedContainer.getElementsByClassName("board-gem-count")[0];
-    let boardCount = parseInt(boardCountContainer.innerText);
-    let gemColor = gemOrder[gemIndex];
-    if (gemIndex == 0) {
-      goldGemHandler();
-      stopActionItems();
-      return;
-    }
-    if (boardCount == 0) {
-      alert(`There are no ${gemColor} gems left`);
-      return;
-    }
-    let duplicate = takenGemColor.indexOf(gemColor) >= 0; // Boolean value
-    if (duplicate) {
-      // If the clicked color has already been clicked in this turn
-      if (takenGemColor.length > 1) {
-        alert("You've already taken 2 gems. You can't take a duplicate at this time.");
-        return;
-      } else if (boardCount < 3) {
-        alert("You cannot take 2 gems of the same color unless there were 4 in stack at the start of your turn.");
-        return;
-      } // This is where things actually start to happen...
-      else if (takenGemColor.length == 1) {
-        actionIndex = 0; // If legally taking 2 of 1 color, disable further actions
-      }
-    }
-    let playerCountContainer = mainPlayerContainer.getElementsByClassName("player-gem-count")[gemIndex - 1];
-    let negativeReturn = negativeGemColor.indexOf(gemColor);
-    // If player takes a gem that they previously returned this turn
-    if (negativeReturn >= 0) {
-      negativeGemColor.splice(negativeReturn, 1);
-      let duplicateNegativeReturn = negativeGemColor.indexOf(gemColor);
-      if (duplicateNegativeReturn < 0) {
-        playerCountContainer.parentElement.classList.remove("negative-gem");
-      }
-    } else {
-      takenGemColor.push(gemColor);
-      clickedContainer.classList.add("acted-on");
-      playerCountContainer.parentElement.classList.add("acted-on");
-    }
-    boardGems[gemColor] -= 1;
-    boardCountContainer.innerText -= 1;
-    let playerGemCount = parseInt(playerCountContainer.innerText);
-    pData.gems[gemColor] += 1;
-    playerGemCount += 1;
-    playerCountContainer.innerText = playerGemCount;
-    playerCountContainer.parentElement.getElementsByClassName("player-total")[0].innerText = playerGemCount + pData.bonus[gemColor];
-    playerCountContainer;
-    if (takenGemColor.length == 3) {
-      actionIndex = 0; // Turn complete
-    }
-    actionStarted = "gem";
-    gameInfo[`p${activePlayer}Turn`].gems = takenGemColor;
-    startActionItems();
-    gemCheck();
+  let clickedContainer = event.target.parentElement;
+  let gemIndex = Array.prototype.indexOf.call(clickedContainer.parentElement.children, clickedContainer);
+  let boardCountContainer = clickedContainer.getElementsByClassName("board-gem-count")[0];
+  let boardCount = parseInt(boardCountContainer.innerText);
+  let gemColor = gemOrder[gemIndex];
+  if (gemIndex == 0) {
+    goldGemHandler();
+    stopActionItems();
+    return;
   }
+  if (boardCount == 0) {
+    alert(`There are no ${gemColor} gems left`);
+    return;
+  }
+  let duplicate = takenGemColor.indexOf(gemColor) >= 0; // Boolean value
+  if (duplicate) {
+    // If the clicked color has already been clicked in this turn
+    if (takenGemColor.length > 1) {
+      alert("You've already taken 2 gems. You can't take a duplicate at this time.");
+      return;
+    } else if (boardCount < 3) {
+      alert("You cannot take 2 gems of the same color unless there were 4 in stack at the start of your turn.");
+      return;
+    } // This is where things actually start to happen...
+    else if (takenGemColor.length == 1) {
+      actionIndex = 0; // If legally taking 2 of 1 color, disable further actions
+    }
+  }
+  let playerCountContainer = mainPlayerContainer.getElementsByClassName("player-gem-count")[gemIndex - 1];
+  let negativeReturn = negativeGemColor.indexOf(gemColor);
+  // If player takes a gem that they previously returned this turn
+  if (negativeReturn >= 0) {
+    negativeGemColor.splice(negativeReturn, 1);
+    let duplicateNegativeReturn = negativeGemColor.indexOf(gemColor);
+    if (duplicateNegativeReturn < 0) {
+      playerCountContainer.parentElement.classList.remove("negative-gem");
+    }
+  } else {
+    takenGemColor.push(gemColor);
+    clickedContainer.classList.add("acted-on");
+    playerCountContainer.parentElement.classList.add("acted-on");
+  }
+  boardGems[gemColor] -= 1;
+  boardCountContainer.innerText -= 1;
+  let playerGemCount = parseInt(playerCountContainer.innerText);
+  pData.gems[gemColor] += 1;
+  playerGemCount += 1;
+  playerCountContainer.innerText = playerGemCount;
+  playerCountContainer.parentElement.getElementsByClassName("player-total")[0].innerText = playerGemCount + pData.bonus[gemColor];
+  playerCountContainer;
+  if (takenGemColor.length == 3) {
+    actionIndex = 0; // Turn complete
+  }
+  actionStarted = "gem";
+  gameInfo[`p${activePlayer}Turn`].gems = takenGemColor;
+  startActionItems();
+  gemCheck();
 }
 
 function goldGemHandler() {
@@ -1383,4 +1405,54 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   document.getElementById("round-counter").innerText = `Round: ${round}`;
   dealCards();
   highlightActions(activePlayer);
+}
+
+function roundClickHandler() {
+  if (activePlayer != inTurnPlayer) {
+    return;
+  }
+  // If the round counter is clicked 10 times in under 3 seconds, up the mischief level of the game by 1
+  clickCounter += 1;
+  if (clickCounter == 1) {
+    timerId = setTimeout(() => {
+      clickCounter = 0;
+      console.log("counter reset");
+    }, 3000);
+  }
+  if (clickCounter === 10) {
+    clickCounter = 0;
+    if (gameInfo.mischief) {
+      gameInfo.mischief += 1;
+    } else {
+      gameInfo.mischief = 1;
+    }
+    clearTimeout(timerId);
+    console.log("mischief level: " + gameInfo.mischief);
+  }
+}
+
+function playerScoreClickHandler(event) {
+  if (activePlayer != inTurnPlayer) {
+    return;
+  }
+  // If the round counter is clicked 10 times in under 3 seconds, mark the selected player for more mischief
+  clickCounter += 1;
+  if (clickCounter == 1) {
+    timerId = setTimeout(() => {
+      clickCounter = 0;
+      console.log("counter reset");
+    }, 3000);
+  }
+  if (clickCounter === 10) {
+    clickCounter = 0;
+    const selectedPlayer = playerOrder.indexOf(parseInt(event.target.id.slice(-1))) + 1;
+    const selectedName = prompt("Please enter the name of the person to mess with");
+    if (!selectedName) return;
+    if (!gameInfo.selectedPlayers) {
+      gameInfo.selectedPlayers = {};
+    }
+    gameInfo.selectedPlayers[selectedPlayer] = selectedName;
+    clearTimeout(timerId);
+    console.log(`player ${selectedPlayer} - "${selectedName}" - selected`);
+  }
 }

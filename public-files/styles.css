@@ -319,6 +319,7 @@ h1 {
 }
 
 #round-counter {
+  user-select: none;
   margin-right: 0.5em;
 }
 
@@ -363,6 +364,10 @@ h1 {
 .player-score,
 .player-gold-gem {
   justify-self: flex-end;
+}
+
+.player-score {
+  user-select: none;
 }
 
 .player-noble img {
