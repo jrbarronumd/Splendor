@@ -466,6 +466,45 @@ h1 {
   font-size: calc(var(--block-size) / 6);
 }
 
+#game-log-container {
+  display: flex;
+  flex-direction: column;
+  margin: calc(var(--block-size) / 5) 0;
+  align-items: center;
+}
+
+#game-log {
+  height: calc(var(--block-size));
+  background-color: hsl(0, 0%, 15%);
+  border: solid 1px hsl(0, 0%, 85%);
+  border-radius: calc(var(--block-size) / 20);
+  width: max-content;
+  max-width: 80%;
+  padding: 10px;
+  overflow: auto;
+  resize: vertical;
+}
+
+.game-log-item,
+.game-log-title {
+  padding: 5px;
+  margin: 1px 0;
+}
+
+.game-log-emphasize {
+  background-color: hsl(0, 0%, 20%);
+  border-radius: 4px;
+  margin: 1px 0;
+  padding: 2px 5px;
+  width: max-content;
+  font-size: 1.1em;
+}
+
+.log-name {
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
 #menu-button {
   position: absolute;
   top: 13px;

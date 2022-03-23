@@ -184,9 +184,11 @@ function createGame(event) {
   var body = {
     game_id: gameId,
     players: numberOfPlayers,
-    game_info: {},
     save_id: "1.1",
-    game_info: { winner: [] },
+    game_info: {
+      winner: [],
+      log: { round_1: { 1: {} } },
+    },
     nobles: noblesDeck.nobles,
     blue_deck: blueDeck.cards,
     yellow_deck: yellowDeck.cards,

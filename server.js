@@ -129,19 +129,19 @@ io.on("connection", (socket) => {
       p3,
       p4
     );
-    // Delete previous row if save ID if it isn't the first turn of the round (X.1)
-    if (saveId.slice(-1) == "2" || saveId == "1.1") {
+    // Delete rows from previous rounds - keep the first row of every round and 1 full round of turns prior to most recent row created.
+    if (saveId.slice(0, -2) == "1" || saveId.slice(-1) == "2" || saveId == "2.1") {
       // Don't delete
     } else if (saveId.slice(-1) == "1") {
       // Delete last turn of previous round
       let round = parseInt(saveId.slice(0, -2)) - 1;
-      let oldSaveId = round + "." + players;
+      let oldSaveId = round - 1 + "." + players;
       const deleteResult = await dbOperations.deleteRow(gameId, oldSaveId);
     } else {
       // Delete previous turn
       let turn = parseInt(saveId.slice(-1)) - 1;
       let round = saveId.slice(0, -2);
-      let oldSaveId = round + "." + turn;
+      let oldSaveId = round - 1 + "." + turn;
       const deleteResult = await dbOperations.deleteRow(gameId, oldSaveId);
     }
     // Send data to other clients in same game (unless this was the game creation row)

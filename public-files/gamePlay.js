@@ -4,17 +4,14 @@ import { rickRoll, randomRickRoll } from "./mischief.js";
 
 // TODO: Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
-// Easter eggs for Carl
-// - ^Rick-roll the winner
-// Add solo mode as option.  different logic to employ, probably?
+// Find a better way to list the gem colors on the log
 // Add option to change winning score
-// TODO: Need a game log
+// Highlight board gems in magenta when taken
+// TODO: Add solo mode as option.  different logic to employ, probably?
 
 var numberOfPlayers,
   gameData,
   gameInfo,
-  logData,
-  logMessage,
   resetData,
   resetState,
   previousPlayer,
@@ -49,12 +46,16 @@ var nobleClaimed = 0; // Change to 1 on reservation to ensure only one per turn
 var clickCounter = 0; // mischief
 let winningScore = 15;
 let notifyWinner = true;
+var logMessage = "";
+let logRound = 1; // This line and the next will help keep track of how much of the log is rendered, so it won't create extra lines or duplicate work
+let logTurn = 0;
 
 var noblesDeck = new NoblesDeck();
 var blueDeck = new CardsDeck();
 var yellowDeck = new CardsDeck();
 var greenDeck = new CardsDeck();
 var blankDeck = new CardsDeck(); // Used when a deck runs out of cards
+// var coinSound = new Audio("./sounds/coin.mp3");
 // var bumpSound = new Audio("./sounds/bump.mp3");
 // var deadSound = new Audio("./sounds/dead.wav");
 // var jumpSound = new Audio("./sounds/jump.wav");
@@ -168,7 +169,6 @@ audioToggle.addEventListener("change", () => {
 initiateNotifications();
 function initiateNotifications(event) {
   if (event) {
-    console.log("Event");
     localStorage.setItem("notifications", notificationToggle.checked);
   }
   if (!notificationToggle.checked) {
@@ -318,6 +318,7 @@ socket.once("game-data", (respData) => {
   dealGems();
   dealCards();
   setTable();
+  updateLog("reload");
   if (inTurnPlayer == activePlayer && gameStatus == "active") {
     startActionItems();
     notifyUser();
@@ -353,6 +354,7 @@ function initialLoad(data) {
 
 // This will be executed every time another player finishes a turn
 socket.on("new-row-result", (newData) => {
+  let previousWinners = winnerArray; // To handle sound for change in winner status
   resetState = "update";
   previousPlayer = inTurnPlayer;
   previousPosition = playerOrder.indexOf(previousPlayer);
@@ -378,6 +380,7 @@ socket.on("new-row-result", (newData) => {
   dealGems();
   dealCards();
   updatePlayer(previousPlayer, previousPosition);
+  updateLog("update");
   checkForWinner();
   if (inTurnPlayer == activePlayer) {
     startActionItems();
@@ -386,6 +389,12 @@ socket.on("new-row-result", (newData) => {
     gameInfo[`p${activePlayer}Turn`] = {};
   } else {
     document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
+  }
+  if ((previousWinners[0] != winnerArray[0] || previousWinners.length != winnerArray.length) && audioToggle.checked) {
+    var deadSound = new Audio("./sounds/dead.wav");
+    setTimeout(function () {
+      deadSound.play();
+    }, 700);
   }
 });
 
@@ -682,6 +691,7 @@ function boardCardClickHandler(event) {
   // event.target.src = `images/cards/${deckColor}-${newCard.cardId}.jpg`; // For Troubleshooting only!
   // Add the gained color bonus to the table and pData
   gameInfo[`p${activePlayer}Turn`].purchasedCard = { deck: deckColor, position: deckIndex };
+  logMessage = ` purchased a card from the ${purchasedCard.deck} deck and gained 1 ${purchasedCard.color} bonus and ${purchasedCard.points} point(s)`;
   actionStarted = "card";
   actionIndex = 0;
   stopActionItems();
@@ -881,6 +891,7 @@ function goldGemHandler() {
     let newDivContents = `<img src="images/gems/goldGem.jpg" />`;
     playerGemContainer.innerHTML += newDivContents;
     pData.gems.gold += 1;
+    logMessage = ` took a gold gem -`;
   }
   removeEventListeners();
   for (var i = 0; i < 12; i++) {
@@ -931,6 +942,7 @@ function reserveCard(event) {
   event.target.src = `images/cards/${deckColor}-00.jpg`; // Replace reserved card with face-down card
   // event.target.src = `images/cards/${deckColor}-${newCard.cardId}.jpg`; // For Troubleshooting only!
   actionIndex = 0; // Disable further actions after reserving is complete
+  logMessage += ` reserved a card from the ${deckColor} deck`;
   document.getElementById("player-notice").innerText = "";
   removeClass(["ignore-me", "emphasize"]);
   startActionItems();
@@ -1043,6 +1055,7 @@ function selectReserved(event) {
   }
   gameInfo[`p${activePlayer}Turn`].buyReserved = true;
   actionStarted = "buy reserved";
+  logMessage = ` purchased a card previously reserved from the ${clickedCard.deck} deck, gained 1 ${clickedCard.color} bonus and ${clickedCard.points} point(s)`;
   actionIndex = 0;
   resetEventListeners();
 }
@@ -1051,8 +1064,6 @@ function claimNobleHandler() {
   if (activePlayer != inTurnPlayer) {
     return;
   }
-  console.log("Claiming a noble");
-
   if (nobleClaimed > 0) {
     alert(`You may only claim 1 noble per turn! If you wish to claim a different one, click "Reset Turn" button`);
     return;
@@ -1174,6 +1185,7 @@ function resetTurnHandler() {
   actionStarted = "none";
   nobleClaimed = 0;
   gameInfo[`p${activePlayer}Turn`] = {};
+  logMessage = "";
   dealNobles();
   dealGems();
   dealCards();
@@ -1250,8 +1262,9 @@ function checkForWinner() {
     notifyWinner = false; // So the notification won't be repeated
     let winnerName = allPlayers[`p${winnerArray[0]}Data`].name;
     alert(`${winnerName} has ${highScore} points.  The game will end after this round.`);
-  } else if (winnerArray.length > 1) {
+  } else if (winnerArray.length > 1 && notifyWinner) {
     // There's actually a tie
+    notifyWinner = false; // So the notification won't be repeated
     alert(
       `There is currently a ${winnerArray.length}-way tie at ${highScore} points (even after tie-breakers). Someone break the tie!!! 
       
@@ -1343,15 +1356,27 @@ Please return ${totalPlayerGems - 10} gem(s) by clicking on the image of the gem
 Gold gems can only be returned if if you took them this turn by clicking the "Reset Turn" button.`);
     return;
   }
-
+  // Update log for gem actions - way easier to do it this way than with the click handlers for each click.
+  if (actionStarted == "gem") {
+    logMessage = ` took ${takenGemColor.length} gems: ${takenGemColor}`;
+  }
+  // This could also be relevant if reserving a card
+  if (negativeGemColor.length > 0) {
+    logMessage += ` - and returned ${negativeGemColor.length} gems: ${negativeGemColor}`;
+  }
   round = parseInt(gameData.save_id.toString().slice(0, -2));
+  gameInfo.log[`round_${round}`][activePlayer].message = logMessage;
+  logMessage = "";
+  if (nobleClaimed == 1) gameInfo.log[`round_${round}`][activePlayer].noble = ` took a noble and gained 3 points`;
   if (inTurnPlayer == numberOfPlayers) {
     round += 1;
     inTurnPlayer = 1;
+    gameInfo.log[`round_${round}`] = { 1: {} };
     // Update winner info
     gameInfo.winner = winnerArray;
   } else {
     inTurnPlayer += 1;
+    gameInfo.log[`round_${round}`][inTurnPlayer] = {};
   }
 
   getPData();
@@ -1382,6 +1407,7 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   actionStarted = "none";
   nobleClaimed = 0;
   takenGemColor = [];
+  updateLog("endTurn");
   removeClass(["acted-on", "negative-gem", "recent-action-img", "recent-action-text"]);
   document.getElementById("in-turn-player").removeAttribute("id");
   document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
@@ -1455,4 +1481,51 @@ function playerScoreClickHandler(event) {
     clearTimeout(timerId);
     console.log(`player ${selectedPlayer} - "${selectedName}" - selected`);
   }
+}
+
+function updateLog(mode = "reload") {
+  const logElement = document.getElementById("game-log");
+  for (let i = logRound; i <= round; i++) {
+    // When logTurn is 0, a new round is created in the log HTML
+    if (logTurn === 0) {
+      const newRound = document.createElement("div");
+      newRound.classList.add("game-log-emphasize");
+      newRound.innerText = `Round ${i}:`;
+      logElement.appendChild(newRound);
+      logTurn++;
+    }
+    for (let j = logTurn; j <= numberOfPlayers; j++) {
+      if (gameInfo.log?.[`round_${i}`]?.[j]?.message) {
+        const logName = document.createElement("span");
+        logName.classList.add("log-name", `player-${j}`);
+        logName.innerText = allPlayers[`p${j}Data`].name;
+        const newMessage = document.createElement("div");
+        newMessage.classList.add("game-log-item");
+        newMessage.innerText = gameInfo.log[`round_${i}`][j].message;
+        newMessage.prepend(logName);
+        logElement.appendChild(newMessage);
+        if (j == numberOfPlayers) {
+          logTurn = 0;
+          logRound++;
+        } else logTurn++;
+      }
+      if (gameInfo.log?.[`round_${i}`]?.[j]?.noble) {
+        const logName = document.createElement("span");
+        logName.classList.add("log-name", `player-${j}`);
+        logName.innerText = allPlayers[`p${j}Data`].name;
+        const newMessage = document.createElement("div");
+        newMessage.classList.add("game-log-item");
+        newMessage.innerText = gameInfo.log[`round_${i}`][j].noble;
+        newMessage.prepend(logName);
+        logElement.appendChild(newMessage);
+        // If in current round, play a sound to notify users a noble was taken (but not the user that actually took it)
+        if ((i == round || (i == round - 1 && inTurnPlayer == 1)) && j != activePlayer && audioToggle.checked) {
+          var bumpSound = new Audio("./sounds/bump.mp3");
+          bumpSound.play();
+        }
+      }
+    }
+  }
+  const blockSize = cssRoot.style.getPropertyValue("--block-size").slice(0, -2); // Remove the "px" from the end
+  logElement.scrollTo(0, logElement.scrollHeight - blockSize); // Keep the game log scrolled to the bottom
 }
