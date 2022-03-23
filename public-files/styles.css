@@ -67,6 +67,10 @@ h1 {
   flex-wrap: wrap;
 }
 
+.game-info-container div {
+  margin-right: 4em;
+}
+
 .user-entry input {
   height: 2em;
   border: none;
@@ -85,7 +89,7 @@ h1 {
   color: hsl(0, 0%, 0%);
 }
 
-.user-entry label {
+.radio-container label {
   display: flex;
   justify-content: center;
   background-color: hsl(0, 0%, 20%);

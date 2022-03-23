@@ -43,7 +43,7 @@ var actionIndex = 1; // 0 will stop any actions
 var actionStarted = "none"; // Possibilities: none, gem, card, etc...
 var nobleClaimed = 0; // Change to 1 on reservation to ensure only one per turn
 var clickCounter = 0; // mischief
-let winningScore = 15;
+let winningScore;
 let notifyWinner = true;
 var logMessage = "";
 let logRound = 1; // This line and the next will help keep track of how much of the log is rendered, so it won't create extra lines or duplicate work
@@ -349,6 +349,7 @@ function initialLoad(data) {
   p3Data = JSON.parse(gameData.player_3);
   p4Data = JSON.parse(gameData.player_4);
   allPlayers = { p1Data, p2Data, p3Data, p4Data };
+  winningScore = parseInt(gameInfo.winning_score) || 15;
 }
 
 // This will be executed every time another player finishes a turn
@@ -1441,8 +1442,8 @@ function updateFavicon() {
     document.getElementById("favicon").href = "./images/favicons/favicon-gold-32x32.png";
     return;
   }
-  let maxGem,
-    gemCount = 0;
+  let maxGem = "red";
+  let gemCount = 0;
   for (let i = 1; i < 6; i++) {
     if (pData.gems[gemOrder[i]] > gemCount) {
       gemCount = pData.gems[gemOrder[i]];

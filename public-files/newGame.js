@@ -7,6 +7,7 @@ const socket = io();
 var playerNumberButtons = document.getElementsByClassName("radio-btn");
 var createGameButton = document.getElementById("create-game-button");
 var gameNameInput = document.getElementById("game-name");
+var winningScoreInput = document.getElementById("winning-score");
 var playerNameInput = document.getElementsByClassName("create-player");
 let baseGameLink = createGameButton.href;
 var numberOfPlayers = 2;
@@ -30,6 +31,7 @@ socket.on("connected", (result) => {
 
 // Add event listeners
 gameNameInput.addEventListener("change", changeGameName);
+winningScoreInput.addEventListener("change", changeWinningScore);
 createGameButton.addEventListener("click", createGame);
 for (var i = 0; i < playerNumberButtons.length; i++) {
   var button = playerNumberButtons[i];
@@ -121,6 +123,16 @@ function changeGameName() {
     gameId = randomGameId;
   }
 }
+
+function changeWinningScore() {
+  if (winningScoreInput.value >= 5 && winningScoreInput.value <= 25) {
+    // All is good - do nothing
+  } else {
+    alert("Please enter a number between 5 and 25");
+    winningScoreInput.value = 15;
+  }
+}
+
 var blankPlayer = {
   name: "Place Holder",
   order: 0,
@@ -186,6 +198,7 @@ function createGame(event) {
     players: numberOfPlayers,
     save_id: "1.1",
     game_info: {
+      winning_score: winningScoreInput.value,
       winner: [],
       log: { round_1: { 1: {} } },
     },

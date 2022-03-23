@@ -34,10 +34,14 @@
         </label>
       </div>
     </div>
-    <div class="user-entry game-name-container">
-      <div class="new-game-label">Name of game:</div>
+    <div class="user-entry game-info-container">
       <div>
-        <input type="text" id="game-name" placeholder="(Leave blank for random ID)" />
+        <label for="game-name" class="new-game-label">Name of game:</label>
+        <input type="text" id="game-name" name="game-name" placeholder="(Leave blank for random ID)" />
+      </div>
+      <div>
+        <label for="winning-score" class="new-game-label">Winning Score:</label>
+        <input type="number" id="winning-score" name="winning-score" min="5" max="25" value="15" />
       </div>
     </div>
     <div class="user-entry player-name-container">
