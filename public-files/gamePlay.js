@@ -6,7 +6,6 @@ import { rickRoll, randomRickRoll } from "./mischief.js";
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
 // Find a better way to list the gem colors on the log
 // Add option to change winning score
-// Highlight board gems in magenta when taken
 // TODO: Add solo mode as option.  different logic to employ, probably?
 
 var numberOfPlayers,
@@ -1433,6 +1432,53 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   highlightActions(activePlayer);
 }
 
+function updateLog(mode = "reload") {
+  const logElement = document.getElementById("game-log");
+  for (let i = logRound; i <= round; i++) {
+    // When logTurn is 0, a new round is created in the log HTML
+    if (logTurn === 0) {
+      const newRound = document.createElement("div");
+      newRound.classList.add("game-log-emphasize");
+      newRound.innerText = `Round ${i}:`;
+      logElement.appendChild(newRound);
+      logTurn++;
+    }
+    for (let j = logTurn; j <= numberOfPlayers; j++) {
+      if (gameInfo.log?.[`round_${i}`]?.[j]?.message) {
+        const logName = document.createElement("span");
+        logName.classList.add("log-name", `player-${j}`);
+        logName.innerText = allPlayers[`p${j}Data`].name;
+        const newMessage = document.createElement("div");
+        newMessage.classList.add("game-log-item");
+        newMessage.innerText = gameInfo.log[`round_${i}`][j].message;
+        newMessage.prepend(logName);
+        logElement.appendChild(newMessage);
+        if (j == numberOfPlayers) {
+          logTurn = 0;
+          logRound++;
+        } else logTurn++;
+      }
+      if (gameInfo.log?.[`round_${i}`]?.[j]?.noble) {
+        const logName = document.createElement("span");
+        logName.classList.add("log-name", `player-${j}`);
+        logName.innerText = allPlayers[`p${j}Data`].name;
+        const newMessage = document.createElement("div");
+        newMessage.classList.add("game-log-item");
+        newMessage.innerText = gameInfo.log[`round_${i}`][j].noble;
+        newMessage.prepend(logName);
+        logElement.appendChild(newMessage);
+        // If in current round, play a sound to notify users a noble was taken (but not the user that actually took it)
+        if ((i == round || (i == round - 1 && inTurnPlayer == 1)) && j != activePlayer && audioToggle.checked) {
+          var bumpSound = new Audio("./sounds/bump.mp3");
+          bumpSound.play();
+        }
+      }
+    }
+  }
+  const blockSize = cssRoot.style.getPropertyValue("--block-size").slice(0, -2); // Remove the "px" from the end
+  logElement.scrollTo(0, logElement.scrollHeight - blockSize); // Keep the game log scrolled to the bottom
+}
+
 function roundClickHandler() {
   if (activePlayer != inTurnPlayer) {
     return;
@@ -1481,51 +1527,4 @@ function playerScoreClickHandler(event) {
     clearTimeout(timerId);
     console.log(`player ${selectedPlayer} - "${selectedName}" - selected`);
   }
-}
-
-function updateLog(mode = "reload") {
-  const logElement = document.getElementById("game-log");
-  for (let i = logRound; i <= round; i++) {
-    // When logTurn is 0, a new round is created in the log HTML
-    if (logTurn === 0) {
-      const newRound = document.createElement("div");
-      newRound.classList.add("game-log-emphasize");
-      newRound.innerText = `Round ${i}:`;
-      logElement.appendChild(newRound);
-      logTurn++;
-    }
-    for (let j = logTurn; j <= numberOfPlayers; j++) {
-      if (gameInfo.log?.[`round_${i}`]?.[j]?.message) {
-        const logName = document.createElement("span");
-        logName.classList.add("log-name", `player-${j}`);
-        logName.innerText = allPlayers[`p${j}Data`].name;
-        const newMessage = document.createElement("div");
-        newMessage.classList.add("game-log-item");
-        newMessage.innerText = gameInfo.log[`round_${i}`][j].message;
-        newMessage.prepend(logName);
-        logElement.appendChild(newMessage);
-        if (j == numberOfPlayers) {
-          logTurn = 0;
-          logRound++;
-        } else logTurn++;
-      }
-      if (gameInfo.log?.[`round_${i}`]?.[j]?.noble) {
-        const logName = document.createElement("span");
-        logName.classList.add("log-name", `player-${j}`);
-        logName.innerText = allPlayers[`p${j}Data`].name;
-        const newMessage = document.createElement("div");
-        newMessage.classList.add("game-log-item");
-        newMessage.innerText = gameInfo.log[`round_${i}`][j].noble;
-        newMessage.prepend(logName);
-        logElement.appendChild(newMessage);
-        // If in current round, play a sound to notify users a noble was taken (but not the user that actually took it)
-        if ((i == round || (i == round - 1 && inTurnPlayer == 1)) && j != activePlayer && audioToggle.checked) {
-          var bumpSound = new Audio("./sounds/bump.mp3");
-          bumpSound.play();
-        }
-      }
-    }
-  }
-  const blockSize = cssRoot.style.getPropertyValue("--block-size").slice(0, -2); // Remove the "px" from the end
-  logElement.scrollTo(0, logElement.scrollHeight - blockSize); // Keep the game log scrolled to the bottom
 }
