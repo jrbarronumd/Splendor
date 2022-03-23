@@ -381,6 +381,7 @@ socket.on("new-row-result", (newData) => {
   updatePlayer(previousPlayer, previousPosition);
   updateLog("update");
   checkForWinner();
+  updateFavicon();
   if (inTurnPlayer == activePlayer) {
     startActionItems();
     notifyUser();
@@ -504,10 +505,12 @@ function delayTasks(currentPlayerNum, i) {
   setTimeout(function () {
     updatePlayer(currentPlayerNum, i);
   }, 200 * (i + 1));
+  // The rest only needs to run once
   if (i == numberOfPlayers - 1) {
     setTimeout(function () {
       resetEventListeners();
       magOnHover();
+      updateFavicon();
     }, 1000);
   }
 }
@@ -1411,6 +1414,7 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   document.getElementById("in-turn-player").removeAttribute("id");
   document.getElementsByClassName("action-buttons")[0].classList.add("invisible");
   stopActionItems();
+  updateFavicon();
   // If game is over, go to game over page
   if (inTurnPlayer == 1 && winnerArray.length > 0) {
     socket.emit("end-game", gameId);
@@ -1430,6 +1434,22 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   document.getElementById("round-counter").innerText = `Round: ${round}`;
   dealCards();
   highlightActions(activePlayer);
+}
+
+function updateFavicon() {
+  if (pData.gems.gold > 0) {
+    document.getElementById("favicon").href = "./images/favicons/favicon-gold-32x32.png";
+    return;
+  }
+  let maxGem,
+    gemCount = 0;
+  for (let i = 1; i < 6; i++) {
+    if (pData.gems[gemOrder[i]] > gemCount) {
+      gemCount = pData.gems[gemOrder[i]];
+      maxGem = gemOrder[i];
+    }
+  }
+  document.getElementById("favicon").href = `./images/favicons/favicon-${maxGem}-32x32.png`;
 }
 
 function updateLog(mode = "reload") {
