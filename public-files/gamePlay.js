@@ -1503,9 +1503,9 @@ function roundClickHandler() {
   if (activePlayer != inTurnPlayer) {
     return;
   }
-  // If the round counter is clicked 10 times in under 3 seconds, up the mischief level of the game by 1
+  // If the round counter is clicked 10 times in under 3 seconds, up the mischief level of the game by 1.  After level 3, reset to 0.
   clickCounter += 1;
-  if (clickCounter == 1) {
+  if (clickCounter === 1) {
     timerId = setTimeout(() => {
       clickCounter = 0;
       console.log("counter reset");
@@ -1513,11 +1513,9 @@ function roundClickHandler() {
   }
   if (clickCounter === 10) {
     clickCounter = 0;
-    if (gameInfo.mischief) {
-      gameInfo.mischief += 1;
-    } else {
-      gameInfo.mischief = 1;
-    }
+    if (!gameInfo.mischief) gameInfo.mischief = 1;
+    else if (gameInfo.mischief === 3) gameInfo.mischief = 0;
+    else gameInfo.mischief += 1;
     clearTimeout(timerId);
     console.log("mischief level: " + gameInfo.mischief);
   }
@@ -1529,7 +1527,7 @@ function playerScoreClickHandler(event) {
   }
   // If the round counter is clicked 10 times in under 3 seconds, mark the selected player for more mischief
   clickCounter += 1;
-  if (clickCounter == 1) {
+  if (clickCounter === 1) {
     timerId = setTimeout(() => {
       clickCounter = 0;
       console.log("counter reset");
@@ -1537,14 +1535,21 @@ function playerScoreClickHandler(event) {
   }
   if (clickCounter === 10) {
     clickCounter = 0;
+    clearTimeout(timerId);
     const selectedPlayer = playerOrder.indexOf(parseInt(event.target.id.slice(-1))) + 1;
-    const selectedName = prompt("Please enter the name of the person to mess with");
+    const selectedName = prompt(`Please enter the name of the person to mess with.
+    
+To remove the person from the list of names to be messed with, enter: XXX`);
     if (!selectedName) return;
+    if (selectedName === "XXX") {
+      delete gameInfo.selectedPlayers[selectedPlayer];
+      console.log(`player ${selectedPlayer} will no longer be messed with.`);
+      return;
+    }
     if (!gameInfo.selectedPlayers) {
       gameInfo.selectedPlayers = {};
     }
     gameInfo.selectedPlayers[selectedPlayer] = selectedName;
-    clearTimeout(timerId);
     console.log(`player ${selectedPlayer} - "${selectedName}" - selected`);
   }
 }
