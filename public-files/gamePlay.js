@@ -4,9 +4,7 @@ import { rickRoll, randomRickRoll } from "./mischief.js";
 
 // TODO: Implement a check to make sure the right number of players are connected via sockets(exactly 1 per player)?
 // - ^Maybe just an alert when loading if there are 2 connections with same player?
-// Find a better way to list the gem colors on the log
-// Add option to change winning score
-// TODO: Add solo mode as option.  different logic to employ, probably?
+// TODO: Add solo mode as option?  different logic to employ, probably?
 
 var numberOfPlayers,
   gameData,
@@ -318,6 +316,7 @@ socket.once("game-data", (respData) => {
   dealCards();
   setTable();
   updateLog("reload");
+  document.getElementById("game-log-start").innerText = `Start of Game - Winning Score: ${winningScore}`;
   if (inTurnPlayer == activePlayer && gameStatus == "active") {
     startActionItems();
     notifyUser();
@@ -1361,11 +1360,11 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   }
   // Update log for gem actions - way easier to do it this way than with the click handlers for each click.
   if (actionStarted == "gem") {
-    logMessage = ` took ${takenGemColor.length} gems: ${takenGemColor}`;
+    logMessage = ` took ${takenGemColor.length} gems: ${takenGemColor.join(", ")}`;
   }
   // This could also be relevant if reserving a card
   if (negativeGemColor.length > 0) {
-    logMessage += ` - and returned ${negativeGemColor.length} gems: ${negativeGemColor}`;
+    logMessage += ` - and returned ${negativeGemColor.length} gems: ${negativeGemColor.join(", ")}`;
   }
   round = parseInt(gameData.save_id.toString().slice(0, -2));
   gameInfo.log[`round_${round}`][activePlayer].message = logMessage;
