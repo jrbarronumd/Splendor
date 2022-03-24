@@ -10,6 +10,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socket(server);
 const dbOperations = require("./db/dbOperations.js");
+const users = {};
 
 dbOperations.createGamesTable("games");
 dbOperations.createGamesTable("finished_games");
@@ -23,13 +24,15 @@ server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 // Make sure rooms are used for all emits (and therefore in client JS). Not necessary with socket.emit - that only sends back to the sender of the original message.
 io.on("connection", (socket) => {
-  // console.log("user connected: " + socket.id);
   socket.emit("connected", "Connection successful. Socket ID: " + socket.id);
+  users[socket.id] = socket.id;
+  console.log(users);
 
   // Handle disconnection
   socket.on("disconnect", async (reason) => {
     const sockets = await io.fetchSockets();
-    console.log(`user: ${socket.id} disconnected because ${reason}. ${sockets.length} connection(s) remaining`);
+    delete users[socket.id];
+    console.log(`user: ${users[socket.id]} disconnected because ${reason}. ${sockets.length} connection(s) remaining`);
   });
 
   // Verify a unique game name was entered
@@ -42,7 +45,9 @@ io.on("connection", (socket) => {
     socket.join("newGame");
     const newGameSockets = await io.in("newGame").fetchSockets();
     const sockets = await io.fetchSockets();
-    console.log(`User ${socket.id} is creating a game. ${newGameSockets.length} total user(s) creating games. ${sockets.length} total connection(s)`);
+    console.log(
+      `User ${users[socket.id]} is creating a game. ${newGameSockets.length} total user(s) creating games. ${sockets.length} total connection(s)`
+    );
   });
 
   socket.on("game-lobby", async (gameId, gameStatus) => {
@@ -57,11 +62,13 @@ io.on("connection", (socket) => {
     let result = await dbOperations.getGame(gameId, table);
     socket.emit("game-data", result[0]);
     if (result.length == 0) {
-      console.log(`invalid game lobby request for game ${gameId} by User ${socket.id}`);
+      console.log(`invalid game lobby request for game ${gameId} by User ${users[socket.id]}`);
       return;
     }
     console.log(
-      `User ${socket.id} is in the lobby for game ID: ${gameId}. ${thisGameSockets.length} socket(s) in game, ${sockets.length} total connection(s)`
+      `User ${users[socket.id]} is in the lobby for game ID: ${gameId}. ${thisGameSockets.length} socket(s) in game, ${
+        sockets.length
+      } total connection(s)`
     );
   });
 
@@ -74,12 +81,14 @@ io.on("connection", (socket) => {
     let result = await dbOperations.getGame(gameId, table);
     socket.emit("game-data", result[0]);
     if (result.length == 0) {
-      console.log(`invalid game request for game ${gameId} by User ${socket.id}`);
+      console.log(`invalid game request for game ${gameId} by User ${users[socket.id]}`);
       return;
     }
     const playerName = JSON.parse(result[0][`player_${playerNum}`]).name;
     console.log(
-      `User ${socket.id} joined game ID: ${gameId} as player ${playerNum} (${playerName}). ${thisGameSockets.length} socket(s) in game, ${sockets.length} total connection(s)`
+      `User ${users[socket.id]} joined game ID: ${gameId} as player ${playerNum} (${playerName}). ${thisGameSockets.length} socket(s) in game, ${
+        sockets.length
+      } total connection(s)`
     );
   });
 
@@ -90,7 +99,9 @@ io.on("connection", (socket) => {
     let result = await dbOperations.getSavedGames("games");
     socket.emit("saved-game-data", result);
     console.log(
-      `User ${socket.id} is in the saved games page. ${savedGameSockets.length} total user(s) viewing saved games. ${sockets.length} total connection(s)`
+      `User ${users[socket.id]} is in the saved games page. ${savedGameSockets.length} total user(s) viewing saved games. ${
+        sockets.length
+      } total connection(s)`
     );
   });
 
@@ -197,7 +208,9 @@ io.on("connection", (socket) => {
     let result = await dbOperations.getGame(gameId, "finished_games");
     socket.emit("game-data", result[0]);
     console.log(
-      `User ${socket.id} is in the Game Over page for game ID: ${gameId}. ${thisGameSockets.length} socket(s) in game, ${sockets.length} total connection(s)`
+      `User ${users[socket.id]} is in the Game Over page for game ID: ${gameId}. ${thisGameSockets.length} socket(s) in game, ${
+        sockets.length
+      } total connection(s)`
     );
   });
 });
