@@ -1,12 +1,13 @@
 // TODO: Server will crash if users are connected and trying to retrieve data on startup IF the db/table doesn't exist yet.
 //       They will crash because the players are requesting data when it is still in the process of being created.
 
+require("dotenv").config();
 const fs = require("fs");
 const socket = require("socket.io");
 const express = require("express");
 const path = require("path");
 const http = require("http");
-const PORT = process.env.PORT || 8585;
+const PORT = process.env.PORT || 8080;
 const app = express();
 const server = http.createServer(app);
 const io = socket(server);
