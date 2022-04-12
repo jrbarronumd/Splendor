@@ -10,7 +10,7 @@ To create a new game, all you need to do is specify a number of players.  Option
 
 Once in the game, when it is your turn, you may click on whatever objects you would like to take into your possession.  If a click does not do anything, it is either not your turn, or it is not a legal action.  As teh games goes on, each player's most recent action will be displayed with a magenta outline, which will reset as you complete your turn.
 
-Make note of the "hamburger" @icn-bars icon at the top right for a menu that allows you to change some visual and audio/notification options, which will be saved in your browser for future visits.
+Make note of the "hamburger" icon at the top right for a menu that allows you to change some visual and audio/notification options, which will be saved in your browser for future visits.
 
 ## Running
 You can run this game locally using `npm` and `node`.  To start the game, run:
