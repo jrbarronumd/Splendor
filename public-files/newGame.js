@@ -12,7 +12,7 @@ var playerNameInput = document.getElementsByClassName("create-player");
 let baseGameLink = createGameButton.href;
 var numberOfPlayers = 2;
 let gameLink, gameId;
-var startingGems = [0, 0, 4, 5, 7]; // ugly but simple way of setting number of gems (i.e. with  3 players, startingGems[3] = 5 gems). Seems like JSON values should be possible to utilize...
+var startingGems = [0, 0, 4, 5, 7]; // Setting number of gems (i.e. with  3 players, startingGems[3] = 5 gems).
 var playerNames = ["Player 1", "Player 2", "Player 3", "Player 4"];
 
 //generate random game ID
