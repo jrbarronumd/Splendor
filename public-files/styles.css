@@ -57,6 +57,25 @@ h1 {
   background-color: hsl(51, 65%, 75%);
 }
 
+footer {
+  text-align: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: absolute;
+  width: 100%;
+  bottom: 3%;
+}
+
+footer a {
+  background-color: hsl(0, 0%, 20%);
+  margin: 0.4em;
+  padding: 0.4em;
+  border-radius: 10px;
+  text-decoration: none;
+  color: hsl(0, 0%, 90%);
+}
+
 /* Create Game page ************************************************************* */
 
 .user-entry {
