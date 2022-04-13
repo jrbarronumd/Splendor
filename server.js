@@ -1,19 +1,56 @@
 // TODO: Server will crash if users are connected and trying to retrieve data on startup IF the db/table doesn't exist yet.
 //       They will crash because the players are requesting data when it is still in the process of being created.
 
+require("dotenv").config();
+const fs = require("fs");
 const socket = require("socket.io");
 const express = require("express");
 const path = require("path");
 const http = require("http");
-const PORT = process.env.PORT || 8585;
+const PORT = process.env.PORT || 8080;
 const app = express();
 const server = http.createServer(app);
 const io = socket(server);
+const { createLogger, format, transports } = require("winston");
+// const winston = require("winston");
 const dbOperations = require("./db/dbOperations.js");
+const { fsyncSync } = require("fs");
 const users = {};
+
+const { combine, timestamp, printf } = format;
+const logFormat = printf(({ level, message, timestamp }) => {
+  return `${timestamp} ${level}: ${message}`;
+});
+
+const logger = createLogger({
+  format: combine(
+    timestamp({
+      format: "YYYY-MM-DD HH:mm:ss",
+    }),
+    logFormat
+  ),
+  transports: [new transports.File({ filename: "standard.log" })],
+});
 
 dbOperations.createGamesTable("games");
 dbOperations.createGamesTable("finished_games");
+
+// Utilize winston to log events, mostly related to socket transactions.
+logger.log({
+  level: "info",
+  message: "Server restarted successfully",
+});
+
+updateUsersFile();
+function updateUsersFile() {
+  const usersData = JSON.stringify(users, null, 3);
+  fs.writeFile("./users.json", usersData, { flag: "w" }, (err) => {
+    if (err) console.log(err);
+    else {
+      // Do something?
+    }
+  });
+}
 
 // Set static folder, set default extension so .html is not required in url
 // Not sure if the use of 'path.join' in this way is necessary - static("./public-files/") should work ok?
@@ -25,14 +62,23 @@ server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 // Make sure rooms are used for all emits (and therefore in client JS). Not necessary with socket.emit - that only sends back to the sender of the original message.
 io.on("connection", (socket) => {
   socket.emit("connected", "Connection successful. Socket ID: " + socket.id);
-  users[socket.id] = socket.id;
-  console.log(users);
-
+  // "remote-name" header and similar ones if used are for leveraging apps behind Authelia authentication service.
+  // IP address was added for more info, so even if all users are "Unknown User", entries in users.json will differentiate by IP address and connection date/time
+  socketUser = socket.handshake.headers["remote-name"] || "Unknown User";
+  if (socketUser == "Guest Gamer") {
+    socketUser += " - " + socket.handshake.headers["x-real-ip"];
+  }
+  users[socket.id] = { name: socketUser, ip: socket.handshake.headers["x-real-ip"], connected: Date() };
   // Handle disconnection
   socket.on("disconnect", async (reason) => {
     const sockets = await io.fetchSockets();
+    // consider ignoring if reason == "transport close"?
+    logger.log({
+      level: "info",
+      message: `user: ${users[socket.id].name} disconnected because ${reason}. ${sockets.length} connection(s) remaining`,
+    });
     delete users[socket.id];
-    console.log(`user: ${users[socket.id]} disconnected because ${reason}. ${sockets.length} connection(s) remaining`);
+    updateUsersFile();
   });
 
   // Verify a unique game name was entered
@@ -45,9 +91,14 @@ io.on("connection", (socket) => {
     socket.join("newGame");
     const newGameSockets = await io.in("newGame").fetchSockets();
     const sockets = await io.fetchSockets();
-    console.log(
-      `User ${users[socket.id]} is creating a game. ${newGameSockets.length} total user(s) creating games. ${sockets.length} total connection(s)`
-    );
+    users[socket.id].location = "creating game";
+    updateUsersFile();
+    logger.log({
+      level: "info",
+      message: `${users[socket.id].name} is creating a game. ${newGameSockets.length} total user(s) creating games. ${
+        sockets.length
+      } total connection(s)`,
+    });
   });
 
   socket.on("game-lobby", async (gameId, gameStatus) => {
@@ -62,14 +113,17 @@ io.on("connection", (socket) => {
     let result = await dbOperations.getGame(gameId, table);
     socket.emit("game-data", result[0]);
     if (result.length == 0) {
-      console.log(`invalid game lobby request for game ${gameId} by User ${users[socket.id]}`);
+      console.log(`invalid game lobby request for game ${gameId} by ${users[socket.id].name}`);
       return;
     }
-    console.log(
-      `User ${users[socket.id]} is in the lobby for game ID: ${gameId}. ${thisGameSockets.length} socket(s) in game, ${
+    users[socket.id].location = "Lobby: " + gameId;
+    updateUsersFile();
+    logger.log({
+      level: "info",
+      message: `${users[socket.id].name} is in the lobby for game ID: ${gameId}. ${thisGameSockets.length} socket(s) in game, ${
         sockets.length
-      } total connection(s)`
-    );
+      } total connection(s)`,
+    });
   });
 
   socket.on("game-load", async (gameId, playerNum, gameStatus) => {
@@ -81,15 +135,18 @@ io.on("connection", (socket) => {
     let result = await dbOperations.getGame(gameId, table);
     socket.emit("game-data", result[0]);
     if (result.length == 0) {
-      console.log(`invalid game request for game ${gameId} by User ${users[socket.id]}`);
+      console.log(`invalid game request for game ${gameId} by ${users[socket.id].name}`);
       return;
     }
     const playerName = JSON.parse(result[0][`player_${playerNum}`]).name;
-    console.log(
-      `User ${users[socket.id]} joined game ID: ${gameId} as player ${playerNum} (${playerName}). ${thisGameSockets.length} socket(s) in game, ${
-        sockets.length
-      } total connection(s)`
-    );
+    users[socket.id].location = "In game: " + gameId;
+    updateUsersFile();
+    logger.log({
+      level: "info",
+      message: `${users[socket.id].name} joined game ID: ${gameId} as player ${playerNum} (${playerName}). ${
+        thisGameSockets.length
+      } socket(s) in game, ${sockets.length} total connection(s)`,
+    });
   });
 
   socket.on("saved-game-request", async () => {
@@ -98,11 +155,14 @@ io.on("connection", (socket) => {
     const savedGameSockets = await io.in("savedGames").fetchSockets();
     let result = await dbOperations.getSavedGames("games");
     socket.emit("saved-game-data", result);
-    console.log(
-      `User ${users[socket.id]} is in the saved games page. ${savedGameSockets.length} total user(s) viewing saved games. ${
+    users[socket.id].location = "Saved games page";
+    updateUsersFile();
+    logger.log({
+      level: "info",
+      message: `${users[socket.id].name} is in the saved games page. ${savedGameSockets.length} total user(s) viewing saved games. ${
         sockets.length
-      } total connection(s)`
-    );
+      } total connection(s)`,
+    });
   });
 
   socket.on("finished-game-request", async () => {
@@ -158,9 +218,15 @@ io.on("connection", (socket) => {
     // Send data to other clients in same game (unless this was the game creation row)
     if (saveId != "1.1") {
       socket.to(gameId).emit("new-row-result", newRow);
-      console.log("New row added and data sent to out-of-turn players in game ID: " + gameId + ", save ID: " + saveId);
+      logger.log({
+        level: "verbose",
+        message: "New row added and data sent to out-of-turn players in game ID: " + gameId + ", save ID: " + saveId,
+      });
     } else {
-      console.log("New game created. Game ID: " + gameId);
+      logger.log({
+        level: "info",
+        message: "New game created. Game ID: " + gameId,
+      });
     }
   });
 
@@ -198,6 +264,10 @@ io.on("connection", (socket) => {
       p4
     );
     const deleted = await dbOperations.deleteGame(gameId);
+    logger.log({
+      level: "info",
+      message: `Game: ${gameId} has ended. It has been moved to the saved games database.`,
+    });
   });
 
   socket.on("game-over", async (gameId) => {
@@ -207,10 +277,13 @@ io.on("connection", (socket) => {
     const thisGameSockets = await io.in(gameId).fetchSockets();
     let result = await dbOperations.getGame(gameId, "finished_games");
     socket.emit("game-data", result[0]);
-    console.log(
-      `User ${users[socket.id]} is in the Game Over page for game ID: ${gameId}. ${thisGameSockets.length} socket(s) in game, ${
+    users[socket.id].location = "Game Over: " + gameId;
+    updateUsersFile();
+    logger.log({
+      level: "info",
+      message: `${users[socket.id].name} is in the Game Over page for game ID: ${gameId}. ${thisGameSockets.length} socket(s) in game, ${
         sockets.length
-      } total connection(s)`
-    );
+      } total connection(s)`,
+    });
   });
 });
