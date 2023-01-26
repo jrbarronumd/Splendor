@@ -1,5 +1,7 @@
 # Splendor
 
+This is my attempt at a web app to play Splendor online.
+
 This game is great.  You should go [buy it](https://www.amazon.com/Asmodee-SPL01-Splendor/dp/B00IZEUFIA/ref=sr_1_2).
 
 ## Playing
@@ -12,8 +14,8 @@ Once in the game, when it is your turn, you may click on whatever objects you wo
 
 Make note of the "hamburger" icon at the top right for a menu that allows you to change some visual and audio/notification options, which will be saved in your browser for future visits.
 
-## Running
-You can run this game locally using `npm` and `node`.  To start the game, run:
+## Direct Installation
+You can run this game locally using `npm` and `node`.  For help installing these, there are plenty of resources easily found.  To start the game, run:
 
 ```
 npm install
@@ -24,8 +26,37 @@ This will start the game listening on port 8080. If you then point a web browser
 
 Incomplete games are saved indefinitely for now, and moved to the finished games list immediately after the last turn.  Once complete, the final state is saved in the finished games list indefinitely.  Both lists are maintained in SQLite databases that will be created when the server is started for the first time.
 
-## Future Plans
+## Docker
+There is a basic Dockerfile you can use to build a container to run.  For now, the port must be mapped to port 8080 of the container, for Docker installations.  While in your docker directory:
 
-I have a few ideas, but for now, I am not planning to make any significant changes to the app unless there is a need.  Please submit an issue if you find a bug, or want to suggest a new capability.  If the instructions on the page are insufficient, I will try to revise as quickly as possible as issues are submitted.
+```
+ git clone https://github.com/jrbarronumd/Splendor.git
+```
+
+Example docker-compose entry is below.  Be sure to replace `$DOCKERDIR` with your Docker directory from above.
+
+```
+version: "3.7"
+services:
+ ######################################### Splendor
+  splendor:
+    container_name: splendor
+    build: $DOCKERDIR/Splendor/
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "8080:8080"
+    volumes:
+      - $DOCKERDIR/Splendor:/code
+```
+
+The game will be available on port 8080 (or whatever is mapped to 8080 of the container) of your server.
+
+## Plans
+
+I have a few ideas, but for now, I am not planning to make any significant changes to the app unless there is a need.  
+
+Please submit an issue if you find a bug, or want to suggest a new capability.  If the instructions on the page are insufficient, I will try to revise as quickly as possible as issues are submitted.  Please be kind - I am new at this.
 
 See if you can find the few easter eggs hidden within the game to have some fun at your opponents' expense!
