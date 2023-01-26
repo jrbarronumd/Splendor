@@ -65,7 +65,7 @@ io.on("connection", (socket) => {
   // "remote-name" header and similar ones if used are for leveraging apps behind Authelia authentication service.
   // IP address was added for more info, so even if all users are "Unknown User", entries in users.json will differentiate by IP address and connection date/time
   socketUser = socket.handshake.headers["remote-name"] || "Unknown User";
-  if (socketUser == "Guest Gamer") {
+  if (socketUser == "Unknown User") {
     socketUser += " - " + socket.handshake.headers["x-real-ip"];
   }
   users[socket.id] = { name: socketUser, ip: socket.handshake.headers["x-real-ip"], connected: Date() };
