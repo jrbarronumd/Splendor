@@ -23,7 +23,8 @@
   },
   "nodemonConfig": {
     "ignore": [
-      "public-files/*"
+      "public-files/*",
+      "users.json"
     ],
     "delay": 750
   }
