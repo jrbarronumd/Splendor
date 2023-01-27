@@ -48,7 +48,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - $DOCKERDIR/Splendor:/code
+      - $DOCKERDIR/Splendor/db:/usr/src/app/db
 ```
 
 The game will be available on port 8080 (or whatever is mapped to 8080 of the container) of your server.
