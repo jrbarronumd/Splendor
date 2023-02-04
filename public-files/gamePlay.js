@@ -1369,23 +1369,19 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   round = parseInt(gameData.save_id.toString().slice(0, -2));
   var padRound = String(round).padStart(2, "0");
   gameInfo.log[`round_${padRound}`][activePlayer].message = logMessage;
-
   logMessage = "";
   if (nobleClaimed == 1) gameInfo.log[`round_${padRound}`][activePlayer].noble = ` took a noble and gained 3 points`;
   if (inTurnPlayer == numberOfPlayers) {
     round += 1;
     padRound = String(round).padStart(2, "0");
     inTurnPlayer = 1;
-    console.log("create now");
     gameInfo.log[`round_${padRound}`] = { 1: {} };
     // Update winner info
     gameInfo.winner = winnerArray;
   } else {
     inTurnPlayer += 1;
-    console.log("else");
     gameInfo.log[`round_${padRound}`][inTurnPlayer] = {};
   }
-  console.log(gameInfo);
 
   getPData();
   var body = {
@@ -1415,6 +1411,7 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
   actionStarted = "none";
   nobleClaimed = 0;
   takenGemColor = [];
+  negativeGemColor = [];
   updateLog("endTurn");
   removeClass(["acted-on", "negative-gem", "recent-action-img", "recent-action-text"]);
   document.getElementById("in-turn-player").removeAttribute("id");
