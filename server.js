@@ -29,7 +29,7 @@ const logger = createLogger({
     }),
     logFormat
   ),
-  transports: [new transports.File({ filename: "standard.log" })],
+  transports: [new transports.File({ filename: "./db/standard.log" })],
 });
 
 dbOperations.createGamesTable("games");
