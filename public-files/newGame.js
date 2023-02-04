@@ -200,7 +200,7 @@ function createGame(event) {
     game_info: {
       winning_score: winningScoreInput.value,
       winner: [],
-      log: { round_1: { 1: {} } },
+      log: { round_01: { 1: {} } },
     },
     nobles: noblesDeck.nobles,
     blue_deck: blueDeck.cards,

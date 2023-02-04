@@ -1367,19 +1367,25 @@ Gold gems can only be returned if if you took them this turn by clicking the "Re
     logMessage += ` - and returned ${negativeGemColor.length} gems: ${negativeGemColor.join(", ")}`;
   }
   round = parseInt(gameData.save_id.toString().slice(0, -2));
-  gameInfo.log[`round_${round}`][activePlayer].message = logMessage;
+  var padRound = String(round).padStart(2, "0");
+  gameInfo.log[`round_${padRound}`][activePlayer].message = logMessage;
+
   logMessage = "";
-  if (nobleClaimed == 1) gameInfo.log[`round_${round}`][activePlayer].noble = ` took a noble and gained 3 points`;
+  if (nobleClaimed == 1) gameInfo.log[`round_${padRound}`][activePlayer].noble = ` took a noble and gained 3 points`;
   if (inTurnPlayer == numberOfPlayers) {
     round += 1;
+    padRound = String(round).padStart(2, "0");
     inTurnPlayer = 1;
-    gameInfo.log[`round_${round}`] = { 1: {} };
+    console.log("create now");
+    gameInfo.log[`round_${padRound}`] = { 1: {} };
     // Update winner info
     gameInfo.winner = winnerArray;
   } else {
     inTurnPlayer += 1;
-    gameInfo.log[`round_${round}`][inTurnPlayer] = {};
+    console.log("else");
+    gameInfo.log[`round_${padRound}`][inTurnPlayer] = {};
   }
+  console.log(gameInfo);
 
   getPData();
   var body = {
@@ -1455,6 +1461,7 @@ function updateFavicon() {
 function updateLog(mode = "reload") {
   const logElement = document.getElementById("game-log");
   for (let i = logRound; i <= round; i++) {
+    var padRound = String(i).padStart(2, "0");
     // When logTurn is 0, a new round is created in the log HTML
     if (logTurn === 0) {
       const newRound = document.createElement("div");
@@ -1464,13 +1471,13 @@ function updateLog(mode = "reload") {
       logTurn++;
     }
     for (let j = logTurn; j <= numberOfPlayers; j++) {
-      if (gameInfo.log?.[`round_${i}`]?.[j]?.message) {
+      if (gameInfo.log?.[`round_${padRound}`]?.[j]?.message) {
         const logName = document.createElement("span");
         logName.classList.add("log-name", `player-${j}`);
         logName.innerText = allPlayers[`p${j}Data`].name;
         const newMessage = document.createElement("div");
         newMessage.classList.add("game-log-item");
-        newMessage.innerText = gameInfo.log[`round_${i}`][j].message;
+        newMessage.innerText = gameInfo.log[`round_${padRound}`][j].message;
         newMessage.prepend(logName);
         logElement.appendChild(newMessage);
         if (j == numberOfPlayers) {
@@ -1478,13 +1485,13 @@ function updateLog(mode = "reload") {
           logRound++;
         } else logTurn++;
       }
-      if (gameInfo.log?.[`round_${i}`]?.[j]?.noble) {
+      if (gameInfo.log?.[`round_${padRound}`]?.[j]?.noble) {
         const logName = document.createElement("span");
         logName.classList.add("log-name", `player-${j}`);
         logName.innerText = allPlayers[`p${j}Data`].name;
         const newMessage = document.createElement("div");
         newMessage.classList.add("game-log-item");
-        newMessage.innerText = gameInfo.log[`round_${i}`][j].noble;
+        newMessage.innerText = gameInfo.log[`round_${padRound}`][j].noble;
         newMessage.prepend(logName);
         logElement.appendChild(newMessage);
         // If in current round, play a sound to notify users a noble was taken (but not the user that actually took it)
