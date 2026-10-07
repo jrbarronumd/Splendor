@@ -59,6 +59,17 @@ app.use(express.static(path.join(__dirname, "/public-files/"), { extensions: ["h
 // Start server
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
+// Reject unauthenticated socket connections. Headers like "remote-name" are set by the
+// reverse proxy but can be spoofed by anyone connecting directly to the socket endpoint,
+// so a shared secret (known only to legitimate clients/proxy) must also be presented.
+io.use((socket, next) => {
+  const token = socket.handshake.auth && socket.handshake.auth.token;
+  if (!process.env.SOCKET_AUTH_TOKEN || token !== process.env.SOCKET_AUTH_TOKEN) {
+    return next(new Error("Authentication failed"));
+  }
+  next();
+});
+
 // Make sure rooms are used for all emits (and therefore in client JS). Not necessary with socket.emit - that only sends back to the sender of the original message.
 io.on("connection", (socket) => {
   socket.emit("connected", "Connection successful. Socket ID: " + socket.id);
